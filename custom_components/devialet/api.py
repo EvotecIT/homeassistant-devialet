@@ -292,6 +292,11 @@ class DevialetApiClient:
             ) from err
 
         if response.status >= 400:
+            if response.status == 404:
+                raise DevialetResponseError(
+                    "Devialet IP Control API was not found at the configured address",
+                    status=response.status,
+                )
             raise DevialetResponseError(
                 f"Devialet device returned HTTP {response.status}",
                 status=response.status,

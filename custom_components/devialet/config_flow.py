@@ -138,7 +138,13 @@ class DevialetConfigFlow(ConfigFlow, domain=DOMAIN):
 
         if self._serial is not None:
             await self.async_set_unique_id(self._serial)
-            self._abort_if_unique_id_configured()
+            self._abort_if_unique_id_configured(
+                updates={
+                    CONF_HOST: self._host,
+                    CONF_PORT: self._port,
+                    CONF_PATH: self._path,
+                }
+            )
 
         self.context["title_placeholders"] = {"title": self._title}
         return await self.async_step_confirm()

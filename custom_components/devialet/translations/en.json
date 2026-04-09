@@ -1,0 +1,26 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect to Devialet",
+        "description": "Set up a Devialet speaker or soundbar using the local IP Control API.",
+        "data": {
+          "host": "Host or IP address",
+          "port": "Port"
+        }
+      },
+      "confirm": {
+        "title": "Confirm device",
+        "description": "Set up the discovered Devialet device."
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect to the Devialet device.",
+      "unsupported": "This device does not expose the expected Devialet IP Control API."
+    },
+    "abort": {
+      "already_configured": "This Devialet device is already configured."
+    }
+  }
+}
+

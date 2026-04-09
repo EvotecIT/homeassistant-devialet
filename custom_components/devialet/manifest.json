@@ -1,0 +1,13 @@
+{
+  "domain": "devialet",
+  "name": "Devialet",
+  "version": "0.1.0",
+  "codeowners": [],
+  "config_flow": true,
+  "integration_type": "device",
+  "iot_class": "local_polling",
+  "after_dependencies": ["zeroconf"],
+  "zeroconf": ["_devialet-http._tcp.local."],
+  "quality_scale": "bronze"
+}
+

@@ -28,6 +28,7 @@ from .const import (
     SOURCE_SELECT_ENDPOINT_TEMPLATE,
     SOURCES_ENDPOINT,
     SYSTEM_INFO_ENDPOINT,
+    SYSTEM_VOLUME_ENDPOINT,
     TURN_OFF_ENDPOINT,
     UNMUTE_ENDPOINT,
     VOLUME_ENDPOINT,
@@ -128,6 +129,8 @@ class DevialetApiClient:
     async def async_get_volume(self) -> DevialetVolume | None:
         """Fetch current volume."""
         payload = await self._request_optional_json("GET", VOLUME_ENDPOINT)
+        if payload is None:
+            payload = await self._request_optional_json("GET", SYSTEM_VOLUME_ENDPOINT)
         if payload is None:
             return None
         return DevialetVolume.from_dict(payload)

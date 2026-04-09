@@ -12,6 +12,14 @@
       "confirm": {
         "title": "Confirm device",
         "description": "Set up the discovered Devialet device."
+      },
+      "reconfigure": {
+        "title": "Reconfigure Devialet",
+        "description": "Update the network details for this Devialet device.",
+        "data": {
+          "host": "Host or IP address",
+          "port": "Port"
+        }
       }
     },
     "error": {
@@ -19,7 +27,9 @@
       "unsupported": "This device does not expose the expected Devialet IP Control API."
     },
     "abort": {
-      "already_configured": "This Devialet device is already configured."
+      "already_configured": "This Devialet device is already configured.",
+      "reconfigure_successful": "The Devialet integration was updated.",
+      "wrong_device": "The selected device does not match the configured Devialet speaker."
     }
   },
   "options": {

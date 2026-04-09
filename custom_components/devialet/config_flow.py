@@ -70,6 +70,60 @@ class DevialetConfigFlow(ConfigFlow, domain=DOMAIN):
             errors=self._errors,
         )
 
+    async def async_step_reconfigure(self, user_input: dict[str, Any] | None = None):
+        """Handle reconfiguration of an existing entry."""
+        self._errors = {}
+        entry = self._get_reconfigure_entry()
+
+        if user_input is not None:
+            self._host = user_input[CONF_HOST]
+            self._port = user_input[CONF_PORT]
+            self._path = entry.data.get(CONF_PATH, DEFAULT_PATH)
+            session = async_get_clientsession(self.hass)
+            client = DevialetApiClient(
+                host=self._host,
+                port=self._port,
+                path=self._path,
+                session=session,
+            )
+
+            try:
+                snapshot = await client.async_refresh()
+            except DevialetError:
+                self._errors["base"] = "cannot_connect"
+            else:
+                serial = snapshot.device.serial or snapshot.device.device_id
+                if serial is None:
+                    self._errors["base"] = "unsupported"
+                else:
+                    await self.async_set_unique_id(serial)
+                    self._abort_if_unique_id_mismatch(reason="wrong_device")
+                    return self.async_update_reload_and_abort(
+                        entry,
+                        data_updates={
+                            CONF_HOST: self._host,
+                            CONF_PORT: self._port,
+                            CONF_PATH: self._path,
+                        },
+                    )
+
+        return self.async_show_form(
+            step_id="reconfigure",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(
+                        CONF_HOST,
+                        default=entry.data[CONF_HOST],
+                    ): str,
+                    vol.Optional(
+                        CONF_PORT,
+                        default=entry.data.get(CONF_PORT, DEFAULT_PORT),
+                    ): int,
+                }
+            ),
+            errors=self._errors,
+        )
+
     async def async_step_zeroconf(self, discovery_info: ZeroconfServiceInfo):
         """Handle zeroconf discovery."""
         properties = discovery_info.properties

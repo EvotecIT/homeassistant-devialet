@@ -8,7 +8,15 @@ from dataclasses import dataclass
 from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
 from homeassistant.const import EntityCategory, UnitOfFrequency, UnitOfTime
 
-from .const import FEATURE_LED_MODE, FEATURE_POWER_MANAGEMENT, source_label
+from .const import (
+    CONF_ENABLE_DEVICE_SETTINGS_SENSORS,
+    CONF_ENABLE_STREAM_DIAGNOSTICS,
+    DEFAULT_ENABLE_DEVICE_SETTINGS_SENSORS,
+    DEFAULT_ENABLE_STREAM_DIAGNOSTICS,
+    FEATURE_LED_MODE,
+    FEATURE_POWER_MANAGEMENT,
+    source_label,
+)
 from .entity import DevialetCoordinatorEntity
 from .models import DevialetSnapshot
 
@@ -104,8 +112,32 @@ SENSOR_DESCRIPTIONS: tuple[DevialetSensorDescription, ...] = (
 async def async_setup_entry(hass, entry, async_add_entities) -> None:
     """Set up Devialet sensors."""
     data = entry.runtime_data.data
+    enable_stream_diagnostics = entry.options.get(
+        CONF_ENABLE_STREAM_DIAGNOSTICS,
+        DEFAULT_ENABLE_STREAM_DIAGNOSTICS,
+    )
+    enable_device_settings_sensors = entry.options.get(
+        CONF_ENABLE_DEVICE_SETTINGS_SENSORS,
+        DEFAULT_ENABLE_DEVICE_SETTINGS_SENSORS,
+    )
     entities: list[SensorEntity] = []
     for description in SENSOR_DESCRIPTIONS:
+        if (
+            description.key in {"codec", "channels", "sampling_rate", "bit_depth"}
+            and not enable_stream_diagnostics
+        ):
+            continue
+        if (
+            description.key
+            in {
+                "led_mode",
+                "led_control",
+                "auto_power_off_mode",
+                "auto_power_off_period",
+            }
+            and not enable_device_settings_sensors
+        ):
+            continue
         if (
             description.key.startswith("led_")
             and FEATURE_LED_MODE not in data.system.available_features

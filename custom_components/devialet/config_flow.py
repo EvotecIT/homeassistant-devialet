@@ -5,13 +5,26 @@ from __future__ import annotations
 from typing import Any
 
 import voluptuous as vol
-from homeassistant.config_entries import ConfigFlow
+from homeassistant.config_entries import ConfigFlow, OptionsFlow
 from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.service_info.zeroconf import ZeroconfServiceInfo
 
 from .api import DevialetApiClient
-from .const import CONF_PATH, DEFAULT_PATH, DEFAULT_PORT, DOMAIN
+from .const import (
+    CONF_ENABLE_DEVICE_SETTINGS_SENSORS,
+    CONF_ENABLE_STREAM_DIAGNOSTICS,
+    CONF_PATH,
+    CONF_SCAN_INTERVAL,
+    DEFAULT_ENABLE_DEVICE_SETTINGS_SENSORS,
+    DEFAULT_ENABLE_STREAM_DIAGNOSTICS,
+    DEFAULT_PATH,
+    DEFAULT_PORT,
+    DEFAULT_SCAN_INTERVAL_SECONDS,
+    DOMAIN,
+    MAX_SCAN_INTERVAL_SECONDS,
+    MIN_SCAN_INTERVAL_SECONDS,
+)
 from .exceptions import DevialetError
 
 
@@ -20,11 +33,17 @@ class DevialetConfigFlow(ConfigFlow, domain=DOMAIN):
 
     VERSION = 1
 
+    @staticmethod
+    def async_get_options_flow(config_entry):
+        """Return the options flow."""
+        return DevialetOptionsFlow(config_entry)
+
     def __init__(self) -> None:
         """Initialize the flow."""
         self._host = ""
         self._port = DEFAULT_PORT
         self._path = DEFAULT_PATH
+        self._serial: str | None = None
         self._title = "Devialet"
         self._errors: dict[str, str] = {}
 
@@ -60,7 +79,13 @@ class DevialetConfigFlow(ConfigFlow, domain=DOMAIN):
         self._host = discovery_info.host
         self._port = discovery_info.port or DEFAULT_PORT
         self._path = properties.get("path", DEFAULT_PATH)
+        self._serial = properties.get("serialNumber")
         self._title = discovery_info.name.removesuffix(f".{discovery_info.type}")
+
+        if self._serial is not None:
+            await self.async_set_unique_id(self._serial)
+            self._abort_if_unique_id_configured()
+
         self.context["title_placeholders"] = {"title": self._title}
         return await self.async_step_confirm()
 
@@ -111,4 +136,52 @@ class DevialetConfigFlow(ConfigFlow, domain=DOMAIN):
                 CONF_PORT: self._port,
                 CONF_PATH: self._path,
             },
+        )
+
+
+class DevialetOptionsFlow(OptionsFlow):
+    """Handle Devialet options."""
+
+    def __init__(self, config_entry) -> None:
+        """Initialize the options flow."""
+        self.config_entry = config_entry
+
+    async def async_step_init(self, user_input: dict[str, Any] | None = None):
+        """Manage the integration options."""
+        if user_input is not None:
+            return self.async_create_entry(title="", data=user_input)
+
+        return self.async_show_form(
+            step_id="init",
+            data_schema=vol.Schema(
+                {
+                    vol.Optional(
+                        CONF_SCAN_INTERVAL,
+                        default=self.config_entry.options.get(
+                            CONF_SCAN_INTERVAL,
+                            DEFAULT_SCAN_INTERVAL_SECONDS,
+                        ),
+                    ): vol.All(
+                        vol.Coerce(int),
+                        vol.Range(
+                            min=MIN_SCAN_INTERVAL_SECONDS,
+                            max=MAX_SCAN_INTERVAL_SECONDS,
+                        ),
+                    ),
+                    vol.Optional(
+                        CONF_ENABLE_STREAM_DIAGNOSTICS,
+                        default=self.config_entry.options.get(
+                            CONF_ENABLE_STREAM_DIAGNOSTICS,
+                            DEFAULT_ENABLE_STREAM_DIAGNOSTICS,
+                        ),
+                    ): bool,
+                    vol.Optional(
+                        CONF_ENABLE_DEVICE_SETTINGS_SENSORS,
+                        default=self.config_entry.options.get(
+                            CONF_ENABLE_DEVICE_SETTINGS_SENSORS,
+                            DEFAULT_ENABLE_DEVICE_SETTINGS_SENSORS,
+                        ),
+                    ): bool,
+                }
+            ),
         )

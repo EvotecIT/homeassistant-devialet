@@ -11,6 +11,10 @@ from homeassistant.components.binary_sensor import (
 )
 from homeassistant.const import EntityCategory
 
+from .const import (
+    CONF_ENABLE_STREAM_DIAGNOSTICS,
+    DEFAULT_ENABLE_STREAM_DIAGNOSTICS,
+)
 from .entity import DevialetCoordinatorEntity
 from .models import DevialetSnapshot
 
@@ -46,6 +50,13 @@ BINARY_SENSOR_DESCRIPTIONS: tuple[DevialetBinarySensorDescription, ...] = (
 
 async def async_setup_entry(hass, entry, async_add_entities) -> None:
     """Set up Devialet binary sensors."""
+    if not entry.options.get(
+        CONF_ENABLE_STREAM_DIAGNOSTICS,
+        DEFAULT_ENABLE_STREAM_DIAGNOSTICS,
+    ):
+        async_add_entities([])
+        return
+
     async_add_entities(
         DevialetBinarySensor(entry.runtime_data, description)
         for description in BINARY_SENSOR_DESCRIPTIONS

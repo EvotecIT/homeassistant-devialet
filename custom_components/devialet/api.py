@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import logging
 from collections.abc import Mapping
 
@@ -279,7 +280,7 @@ class DevialetApiClient:
 
         try:
             async with self._session.request(method, url, **request_kwargs) as response:
-                data = await response.json(content_type=None)
+                response_text = await response.text()
         except aiohttp.ClientError as err:
             raise DevialetConnectionError(str(err)) from err
         except TimeoutError as err:
@@ -287,15 +288,26 @@ class DevialetApiClient:
                 "Request to Devialet device timed out"
             ) from err
 
-        if not isinstance(data, dict):
-            raise DevialetResponseError(
-                "Devialet device returned an unexpected payload type",
-                status=response.status,
-            )
-
         if response.status >= 400:
             raise DevialetResponseError(
                 f"Devialet device returned HTTP {response.status}",
+                status=response.status,
+            )
+
+        if not response_text.strip():
+            return {}
+
+        try:
+            data = json.loads(response_text)
+        except json.JSONDecodeError as err:
+            raise DevialetResponseError(
+                f"Devialet device returned non-JSON data for {endpoint}",
+                status=response.status,
+            ) from err
+
+        if not isinstance(data, dict):
+            raise DevialetResponseError(
+                "Devialet device returned an unexpected payload type",
                 status=response.status,
             )
 

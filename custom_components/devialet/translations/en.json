@@ -21,6 +21,18 @@
     "abort": {
       "already_configured": "This Devialet device is already configured."
     }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Devialet options",
+        "description": "Adjust polling and which optional entities should be created.",
+        "data": {
+          "scan_interval": "Polling interval (seconds)",
+          "enable_stream_diagnostics": "Create technical stream diagnostic entities",
+          "enable_device_settings_sensors": "Create LED and power-management sensor entities"
+        }
+      }
+    }
   }
 }
-

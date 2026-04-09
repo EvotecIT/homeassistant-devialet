@@ -11,7 +11,13 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .api import DevialetApiClient
-from .const import CONF_PATH, DEFAULT_PATH, DEFAULT_PORT, DEFAULT_SCAN_INTERVAL_SECONDS
+from .const import (
+    CONF_PATH,
+    CONF_SCAN_INTERVAL,
+    DEFAULT_PATH,
+    DEFAULT_PORT,
+    DEFAULT_SCAN_INTERVAL_SECONDS,
+)
 from .exceptions import DevialetError
 from .models import DevialetSnapshot
 
@@ -39,7 +45,12 @@ class DevialetCoordinator(DataUpdateCoordinator[DevialetSnapshot]):
             _LOGGER,
             config_entry=entry,
             name="devialet",
-            update_interval=timedelta(seconds=DEFAULT_SCAN_INTERVAL_SECONDS),
+            update_interval=timedelta(
+                seconds=entry.options.get(
+                    CONF_SCAN_INTERVAL,
+                    DEFAULT_SCAN_INTERVAL_SECONDS,
+                )
+            ),
         )
 
     async def _async_update_data(self) -> DevialetSnapshot:

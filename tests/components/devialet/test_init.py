@@ -87,6 +87,10 @@ async def test_setup_creates_expected_entities(hass, mock_config_entry) -> None:
     assert hass.states.get("sensor.dione_channels").state == "5.1.2"
     assert hass.states.get("binary_sensor.dione_stream_lock").state == "on"
     assert hass.states.get("sensor.dione_auto_power_off_period").state == "90"
+    media_player_state = hass.states.get("media_player.dione")
+    assert media_player_state.attributes["stream_codec"] == "pcm"
+    assert media_player_state.attributes["stream_channels"] == "5.1.2"
+    assert media_player_state.attributes["rendering_mode"] == "movie"
 
 
 @pytest.mark.asyncio

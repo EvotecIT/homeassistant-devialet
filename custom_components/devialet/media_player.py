@@ -166,6 +166,31 @@ class DevialetMediaPlayer(DevialetCoordinatorEntity, MediaPlayerEntity):
         """Return the media type."""
         return MediaType.MUSIC
 
+    @property
+    def extra_state_attributes(self) -> dict[str, object]:
+        """Return additional device and stream details."""
+        data = self.coordinator.data
+        source_state = data.source_state
+        stream_info = source_state.stream_info if source_state else None
+
+        attributes: dict[str, object] = {}
+        if source_state and source_state.source:
+            attributes["source_type"] = source_state.source.type
+        if stream_info:
+            attributes["stream_codec"] = stream_info.codec
+            attributes["stream_channels"] = stream_info.channels
+            attributes["stream_sampling_rate"] = stream_info.sampling_rate
+            attributes["stream_bit_depth"] = stream_info.bit_depth
+            attributes["stream_lossless"] = stream_info.lossless
+            attributes["stream_supported"] = stream_info.supported
+        if source_state:
+            attributes["stream_lock"] = source_state.stream_lock
+        if data.rendering_mode:
+            attributes["rendering_mode"] = data.rendering_mode.rendering_mode
+        if data.night_mode:
+            attributes["night_mode"] = data.night_mode.night_mode
+        return attributes
+
     async def async_set_volume_level(self, volume: float) -> None:
         """Set the player volume."""
         await self._async_perform(

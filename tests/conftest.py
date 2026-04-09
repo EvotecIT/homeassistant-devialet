@@ -7,7 +7,13 @@ from collections.abc import Generator
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.devialet.const import CONF_PATH, DEFAULT_PATH, DOMAIN
+from custom_components.devialet.const import (
+    CONF_ENABLE_DEVICE_SETTINGS_SENSORS,
+    CONF_ENABLE_STREAM_DIAGNOSTICS,
+    CONF_PATH,
+    DEFAULT_PATH,
+    DOMAIN,
+)
 
 TEST_HOST = "192.0.2.10"
 TEST_PORT = 80
@@ -159,5 +165,9 @@ def mock_config_entry() -> MockConfigEntry:
             "host": TEST_HOST,
             "port": TEST_PORT,
             CONF_PATH: DEFAULT_PATH,
+        },
+        options={
+            CONF_ENABLE_STREAM_DIAGNOSTICS: True,
+            CONF_ENABLE_DEVICE_SETTINGS_SENSORS: True,
         },
     )

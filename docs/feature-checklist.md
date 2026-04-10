@@ -20,12 +20,12 @@ This checklist tracks what the repository already covers and what still needs wo
   - [ ] expose `ledMode` as a writable Home Assistant entity
   - [ ] decide whether `ledControl` should be a `select` or `switch`
   - [ ] validate payloads on a real Dione before exposing broadly
-- [ ] Writable power management
-  - [ ] expose auto power-off enabled/disabled
-  - [ ] expose auto power-off period
-  - [ ] confirm the write payload shape on a live device
-- [ ] Bluetooth pairing button or service
-  - [ ] expose `startAdvertising` safely from Home Assistant
+- [x] Writable power management
+  - [x] expose auto power-off enabled/disabled
+  - [x] expose auto power-off period
+  - [ ] confirm the write payload shape on a live device after the Dione IP is rediscovered
+- [x] Bluetooth pairing button or service
+  - [x] expose `startAdvertising` safely from Home Assistant
   - [ ] add a user-facing description and warning text
 
 ## Feature Discovery / Reverse Engineering

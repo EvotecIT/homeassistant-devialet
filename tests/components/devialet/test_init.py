@@ -6,12 +6,16 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 from aioresponses import aioresponses
+from homeassistant.components.button import DOMAIN as BUTTON_DOMAIN
+from homeassistant.components.button import SERVICE_PRESS
 from homeassistant.components.media_player import (
     DOMAIN as MEDIA_PLAYER_DOMAIN,
 )
 from homeassistant.components.media_player import (
     SERVICE_SELECT_SOURCE,
 )
+from homeassistant.components.number import DOMAIN as NUMBER_DOMAIN
+from homeassistant.components.number import SERVICE_SET_VALUE
 from homeassistant.components.select import DOMAIN as SELECT_DOMAIN
 from homeassistant.components.select import SERVICE_SELECT_OPTION
 from homeassistant.components.switch import DOMAIN as SWITCH_DOMAIN
@@ -82,7 +86,10 @@ async def test_setup_creates_expected_entities(hass, mock_config_entry) -> None:
 
     assert hass.states.get("media_player.dione").state == "playing"
     assert hass.states.get("switch.dione_night_mode").state == "off"
+    assert hass.states.get("switch.dione_auto_power_off").state == "off"
     assert hass.states.get("select.dione_rendering_mode").state == "movie"
+    assert hass.states.get("number.dione_auto_power_off_period").state == "90"
+    assert hass.states.get("button.dione_start_bluetooth_pairing").state == "unknown"
     assert hass.states.get("sensor.dione_codec").state == "pcm"
     assert hass.states.get("sensor.dione_channels").state == "5.1.2"
     assert hass.states.get("binary_sensor.dione_stream_lock").state == "on"
@@ -122,6 +129,21 @@ async def test_switch_and_select_use_client_methods(hass, mock_config_entry) -> 
 
     with patch.object(
         coordinator.client,
+        "async_set_auto_power_off_enabled",
+        AsyncMock(),
+    ) as set_auto_power_off:
+        with aioresponses() as mocked:
+            _mock_refresh_endpoints(mocked)
+            await hass.services.async_call(
+                SWITCH_DOMAIN,
+                SERVICE_TURN_ON,
+                {ATTR_ENTITY_ID: "switch.dione_auto_power_off"},
+                blocking=True,
+            )
+        set_auto_power_off.assert_awaited_once_with(True, current_period=90)
+
+    with patch.object(
+        coordinator.client,
         "async_set_rendering_mode",
         AsyncMock(),
     ) as set_rendering_mode:
@@ -155,3 +177,36 @@ async def test_switch_and_select_use_client_methods(hass, mock_config_entry) -> 
                 blocking=True,
             )
         select_source.assert_awaited_once_with("2aa14293-aa9e-4ade-ab45-27c89055ea64")
+
+    with patch.object(
+        coordinator.client,
+        "async_set_auto_power_off_period",
+        AsyncMock(),
+    ) as set_auto_power_off_period:
+        with aioresponses() as mocked:
+            _mock_refresh_endpoints(mocked)
+            await hass.services.async_call(
+                NUMBER_DOMAIN,
+                SERVICE_SET_VALUE,
+                {
+                    ATTR_ENTITY_ID: "number.dione_auto_power_off_period",
+                    "value": 120,
+                },
+                blocking=True,
+            )
+        set_auto_power_off_period.assert_awaited_once_with(120, enabled=False)
+
+    with patch.object(
+        coordinator.client,
+        "async_start_bluetooth_pairing",
+        AsyncMock(),
+    ) as start_bluetooth_pairing:
+        with aioresponses() as mocked:
+            _mock_refresh_endpoints(mocked)
+            await hass.services.async_call(
+                BUTTON_DOMAIN,
+                SERVICE_PRESS,
+                {ATTR_ENTITY_ID: "button.dione_start_bluetooth_pairing"},
+                blocking=True,
+            )
+        start_bluetooth_pairing.assert_awaited_once_with()

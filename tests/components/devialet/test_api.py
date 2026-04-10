@@ -88,3 +88,19 @@ async def test_async_set_rendering_mode_posts_expected_payload() -> None:
         RENDERING_MODE_ENDPOINT,
         payload={"renderingMode": "music"},
     )
+
+
+@pytest.mark.asyncio
+async def test_async_set_auto_power_off_enabled_posts_expected_payload() -> None:
+    """Auto power-off writes should preserve the configured period."""
+    session = AsyncMock(spec=aiohttp.ClientSession)
+    client = DevialetApiClient(TEST_HOST, session)
+    client._request_json = AsyncMock(return_value={})  # type: ignore[method-assign]
+
+    await client.async_set_auto_power_off_enabled(True, current_period=90)
+
+    client._request_json.assert_awaited_once_with(
+        "POST",
+        POWER_MANAGEMENT_ENDPOINT,
+        payload={"autoPowerOff": "enabled", "autoPowerOffPeriod": 90},
+    )

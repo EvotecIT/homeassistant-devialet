@@ -236,6 +236,56 @@ class DevialetApiClient:
             payload={"renderingMode": mode},
         )
 
+    async def async_set_power_management(
+        self,
+        *,
+        auto_power_off: str,
+        auto_power_off_period: int | None = None,
+    ) -> None:
+        """Set power-management values using the best-known writable endpoint."""
+        payload: dict[str, object] = {"autoPowerOff": auto_power_off}
+        if auto_power_off_period is not None:
+            payload["autoPowerOffPeriod"] = auto_power_off_period
+
+        try:
+            await self._request_json(
+                "POST",
+                POWER_MANAGEMENT_ENDPOINT,
+                payload=payload,
+            )
+        except DevialetResponseError as err:
+            if err.status != 404 and err.code != "NotFound":
+                raise
+            await self._request_json(
+                "POST",
+                POWER_MANAGEMENT_AUDIO_ENDPOINT,
+                payload=payload,
+            )
+
+    async def async_set_auto_power_off_enabled(
+        self,
+        enabled: bool,
+        *,
+        current_period: int | None = None,
+    ) -> None:
+        """Enable or disable automatic power off."""
+        await self.async_set_power_management(
+            auto_power_off="enabled" if enabled else "disabled",
+            auto_power_off_period=current_period,
+        )
+
+    async def async_set_auto_power_off_period(
+        self,
+        period: int,
+        *,
+        enabled: bool | None = None,
+    ) -> None:
+        """Set the automatic power-off period in minutes."""
+        await self.async_set_power_management(
+            auto_power_off="enabled" if enabled is None or enabled else "disabled",
+            auto_power_off_period=period,
+        )
+
     async def async_select_source(self, source_id: str) -> None:
         """Select a source by source id."""
         endpoint = SOURCE_SELECT_ENDPOINT_TEMPLATE.format(source_id=source_id)

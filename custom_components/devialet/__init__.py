@@ -11,6 +11,8 @@ PLATFORMS = [
     Platform.MEDIA_PLAYER,
     Platform.SWITCH,
     Platform.SELECT,
+    Platform.NUMBER,
+    Platform.BUTTON,
     Platform.SENSOR,
     Platform.BINARY_SENSOR,
 ]

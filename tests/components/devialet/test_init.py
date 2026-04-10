@@ -89,7 +89,7 @@ async def test_setup_creates_expected_entities(hass, mock_config_entry) -> None:
     assert hass.states.get("switch.dione_auto_power_off").state == "off"
     assert hass.states.get("select.dione_rendering_mode").state == "movie"
     assert hass.states.get("select.dione_led_mode").state == "auto"
-    assert hass.states.get("number.dione_auto_power_off_period").state == "90"
+    assert hass.states.get("number.dione_auto_power_off_period").state == "90.0"
     assert hass.states.get("button.dione_start_bluetooth_pairing").state == "unknown"
     assert hass.states.get("sensor.dione_codec").state == "pcm"
     assert hass.states.get("sensor.dione_channels").state == "5.1.2"

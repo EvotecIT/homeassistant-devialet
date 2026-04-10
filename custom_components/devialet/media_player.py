@@ -241,7 +241,31 @@ class DevialetMediaPlayer(DevialetCoordinatorEntity, MediaPlayerEntity):
         source_map = build_source_option_map(
             (item.type, item.source_id) for item in self.coordinator.data.sources
         )
-        source_id = source_map[source]
+        source_id = source_map.get(source)
+        if source_id is None:
+            normalized = (
+                source.casefold().replace(" ", "").replace("-", "").replace("_", "")
+            )
+            for label, candidate_id in source_map.items():
+                normalized_label = (
+                    label.casefold()
+                    .replace(" ", "")
+                    .replace("-", "")
+                    .replace("_", "")
+                )
+                if normalized_label == normalized:
+                    source_id = candidate_id
+                    break
+        if source_id is None:
+            for item in self.coordinator.data.sources:
+                if (
+                    item.source_id == source
+                    or item.type.casefold() == source.casefold()
+                ):
+                    source_id = item.source_id
+                    break
+        if source_id is None:
+            raise ValueError(f"Unknown Devialet source option: {source}")
         await self._async_perform(
             self.coordinator.client.async_select_source(source_id)
         )

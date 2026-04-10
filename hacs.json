@@ -1,7 +1,6 @@
 {
   "name": "Devialet",
   "content_in_root": false,
-  "domains": ["devialet"],
   "render_readme": true,
   "homeassistant": "2026.4.0"
 }

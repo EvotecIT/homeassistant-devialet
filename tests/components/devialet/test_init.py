@@ -150,7 +150,7 @@ async def test_switch_and_select_use_client_methods(hass, mock_config_entry) -> 
                 SERVICE_SELECT_SOURCE,
                 {
                     ATTR_ENTITY_ID: "media_player.dione",
-                    "source": "Spotify Connect",
+                    "source": "spotifyconnect",
                 },
                 blocking=True,
             )

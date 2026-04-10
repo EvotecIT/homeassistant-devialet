@@ -6,6 +6,7 @@ import pytest
 from aioresponses import aioresponses
 from homeassistant import config_entries
 from homeassistant.const import CONF_HOST, CONF_PORT
+from homeassistant.data_entry_flow import FlowResultType
 
 from custom_components.devialet.const import CONF_PATH, DEFAULT_PATH, DOMAIN
 from tests.conftest import (
@@ -74,7 +75,7 @@ async def test_user_flow_creates_entry(hass) -> None:
             data={CONF_HOST: TEST_HOST, CONF_PORT: TEST_PORT},
         )
 
-    assert result["type"] is config_entries.FlowResultType.CREATE_ENTRY
+    assert result["type"] is FlowResultType.CREATE_ENTRY
     assert result["title"] == "Dione"
     assert result["data"] == {
         CONF_HOST: TEST_HOST,

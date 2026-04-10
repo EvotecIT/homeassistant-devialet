@@ -26,7 +26,7 @@ test = [
 include = ["custom_components*", "tests*"]
 
 [tool.setuptools.package-data]
-"custom_components.devialet" = ["manifest.json", "translations/*.json"]
+"custom_components.devialet" = ["manifest.json", "translations/*.json", "brand/*.png"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

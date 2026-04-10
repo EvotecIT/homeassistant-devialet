@@ -4,18 +4,30 @@
 [![Validate](https://img.shields.io/github/actions/workflow/status/EvotecIT/homeassistant-devialet/validate.yml?branch=main&style=for-the-badge&label=Validate)](https://github.com/EvotecIT/homeassistant-devialet/actions/workflows/validate.yml)
 [![Hassfest](https://img.shields.io/github/actions/workflow/status/EvotecIT/homeassistant-devialet/hassfest.yml?branch=main&style=for-the-badge&label=Hassfest)](https://github.com/EvotecIT/homeassistant-devialet/actions/workflows/hassfest.yml)
 
-Modern, local-first Devialet support for Home Assistant, built around the Devialet IP Control API and tested against a real Devialet Dione.
+Local-first Devialet support for Home Assistant, focused on reliability, clean setup, and controls that actually match what the speaker exposes on your network.
 
-## Highlights
+![Devialet integration overview](assets/devialet-overview.png)
 
-- Local polling and zeroconf discovery
-- UI config flow and options flow
-- Media player controls, source selection, volume, mute
-- Dione-focused controls such as `night mode` and `rendering mode`
-- Technical stream metadata for diagnostics
-- HACS-ready structure with CI and hassfest validation
+## 🎯 What This Is
 
-## Installation
+This project is a custom Home Assistant integration for Devialet speakers that expose the local IP Control API.
+
+Today the strongest real-world validation is on:
+
+- Devialet Dione
+
+The goal is broader Devialet support over time, while keeping the integration stable and practical for everyday Home Assistant use.
+
+## ✨ What You Get
+
+- local discovery and config flow setup
+- media player controls
+- source selection
+- volume and mute
+- Dione features such as `night mode` and `rendering mode`
+- useful diagnostics and stream metadata
+
+## 🏠 Installation
 
 ### HACS
 
@@ -27,71 +39,38 @@ Modern, local-first Devialet support for Home Assistant, built around the Devial
 
 ### Manual
 
-1. Copy [custom_components/devialet](C:/Support/GitHub/homeassistant-devialet/custom_components/devialet) into your Home Assistant `config/custom_components` directory.
+1. Copy the `custom_components/devialet` folder into your Home Assistant `config/custom_components` directory.
 2. Restart Home Assistant.
 3. Add the integration from `Settings -> Devices & services`.
 
-## What It Exposes
+## ✅ Current Status
 
-- `media_player` for playback, source selection, volume, mute, and power
-- `switch` for features such as `night mode`
-- `select` for configuration such as `rendering mode`
-- `sensor` and `binary_sensor` entities for stream and device diagnostics
+- best support today: Devialet Dione
+- local API confirmed and tested against Dione firmware `2.18.6`
+- structured so more Devialet models can be added as we confirm their local behavior
 
-## Repository Layout
+The current investigation notes are in `docs/devialet-dione-investigation.md`.
 
-### Reusable Python protocol layer
+## 🧱 Project Structure
 
-The reusable Devialet client lives inside the integration today and is designed so it can later be extracted into a standalone Python package:
+This repo is intentionally split into two layers:
 
-- [api.py](C:/Support/GitHub/homeassistant-devialet/custom_components/devialet/api.py)
-- [models.py](C:/Support/GitHub/homeassistant-devialet/custom_components/devialet/models.py)
-- [exceptions.py](C:/Support/GitHub/homeassistant-devialet/custom_components/devialet/exceptions.py)
+- a reusable Python protocol/client layer for talking to Devialet locally
+- the Home Assistant integration layer built on top of it
 
-This layer is responsible for:
+That keeps the code easier to test and also leaves a path toward extracting a standalone Python library later.
 
-- talking to the local Devialet IP Control API
-- parsing device, system, source, and stream payloads
-- normalizing feature detection for Home Assistant
+## 🛣️ Roadmap
 
-### Home Assistant integration layer
+- expand writable settings safely after endpoint confirmation
+- improve support for additional Devialet models
+- keep aligning with Home Assistant best practices
+- eventually extract the protocol layer into a reusable Python package if it stabilizes enough
 
-The Home Assistant integration lives in:
-
-- [config_flow.py](C:/Support/GitHub/homeassistant-devialet/custom_components/devialet/config_flow.py)
-- [coordinator.py](C:/Support/GitHub/homeassistant-devialet/custom_components/devialet/coordinator.py)
-- [media_player.py](C:/Support/GitHub/homeassistant-devialet/custom_components/devialet/media_player.py)
-- [switch.py](C:/Support/GitHub/homeassistant-devialet/custom_components/devialet/switch.py)
-- [select.py](C:/Support/GitHub/homeassistant-devialet/custom_components/devialet/select.py)
-- [sensor.py](C:/Support/GitHub/homeassistant-devialet/custom_components/devialet/sensor.py)
-- [binary_sensor.py](C:/Support/GitHub/homeassistant-devialet/custom_components/devialet/binary_sensor.py)
-
-## Confirmed Device Scope
-
-This repo is currently validated primarily against Devialet Dione firmware `2.18.6`.
-
-Confirmed local endpoints and features are documented in:
-
-- [devialet-dione-investigation.md](C:/Support/GitHub/homeassistant-devialet/docs/devialet-dione-investigation.md)
-
-## Planned Next Steps
-
-- verify and expose more writable Dione settings such as LED and power-management controls
-- confirm additional advertised features such as `orientation` and `roomCorrection`
-- extract the protocol layer into a reusable standalone Python library when the API surface is stable
-- upstream improvements to Home Assistant Core once the behavior is mature enough
-
-## Development
-
-Install test dependencies:
+## 🛠️ Development
 
 ```bash
 python -m pip install -e .[test]
-```
-
-Run checks:
-
-```bash
 ruff check .
 python -m compileall custom_components tests
 pytest
@@ -99,10 +78,10 @@ pytest
 
 Note:
 
-- the full Home Assistant test harness is Linux-first
-- on Windows, `pytest-homeassistant-custom-component` imports `fcntl`, so complete HA pytest runs are expected to execute in CI on Ubuntu
+- the full Home Assistant pytest stack runs best in Linux CI
+- on Windows, `pytest-homeassistant-custom-component` imports `fcntl`, so complete local HA pytest runs are limited
 
-## Support
+## ❤️ Support
 
 - Issues: [GitHub Issues](https://github.com/EvotecIT/homeassistant-devialet/issues)
 - Source: [GitHub Repository](https://github.com/EvotecIT/homeassistant-devialet)

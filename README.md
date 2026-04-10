@@ -51,14 +51,26 @@ The goal is broader Devialet support over time, while keeping the integration st
 
 The current investigation notes are in `docs/devialet-dione-investigation.md`.
 
-## 🧱 Project Structure
+## 🧱 Reusable Python Package
 
-This repo is intentionally split into two layers:
+This repository now ships two usable layers:
 
-- a reusable Python protocol/client layer for talking to Devialet locally
-- the Home Assistant integration layer built on top of it
+- `devialet_client` for direct Python access to the local Devialet IP Control API
+- the Home Assistant integration in `custom_components/devialet`
 
-That keeps the code easier to test and also leaves a path toward extracting a standalone Python library later.
+Example:
+
+```python
+from aiohttp import ClientSession
+from devialet_client import DevialetApiClient
+
+async with ClientSession() as session:
+    client = DevialetApiClient("192.168.1.10", session)
+    snapshot = await client.async_refresh()
+    print(snapshot.device.device_name)
+```
+
+That means the protocol layer is reusable outside Home Assistant for scripts, tooling, or future apps, while the integration stays focused on Home Assistant UX.
 
 ## 🛣️ Roadmap
 

@@ -1,6 +1,12 @@
-"""Compatibility wrapper for reusable Devialet models."""
+"""Reusable Devialet IP Control client package."""
 
-from .devialet_client import (
+from .client import DevialetApiClient
+from .exceptions import (
+    DevialetConnectionError,
+    DevialetError,
+    DevialetResponseError,
+)
+from .models import (
     DevialetDeviceInfo,
     DevialetLedMode,
     DevialetMetadata,
@@ -17,13 +23,17 @@ from .devialet_client import (
 )
 
 __all__ = [
+    "DevialetApiClient",
+    "DevialetConnectionError",
     "DevialetDeviceInfo",
+    "DevialetError",
     "DevialetLedMode",
     "DevialetMetadata",
     "DevialetNightMode",
     "DevialetPowerManagement",
     "DevialetReleaseInfo",
     "DevialetRenderingMode",
+    "DevialetResponseError",
     "DevialetSnapshot",
     "DevialetSource",
     "DevialetSourceState",

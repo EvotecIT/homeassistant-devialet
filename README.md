@@ -51,6 +51,8 @@ The goal is broader Devialet support over time, while keeping the integration st
 
 The current investigation notes are in `docs/devialet-dione-investigation.md`.
 
+Feature tracking checklist: `docs/feature-checklist.md`
+
 ## 🧱 Reusable Python Package
 
 This repository now ships two usable layers:
@@ -78,9 +80,9 @@ That means the protocol layer is reusable outside Home Assistant for scripts, to
 
 ## 🛣️ Roadmap
 
-- expand writable settings safely after endpoint confirmation
-- improve support for additional Devialet models
-- keep aligning with Home Assistant best practices
+- next tracked work lives in `docs/feature-checklist.md`
+- top priorities are writable LED and power-management controls plus Bluetooth pairing exposure
+- broader model validation remains important beyond Dione
 
 ## 🛠️ Development
 

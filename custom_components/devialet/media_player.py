@@ -176,6 +176,15 @@ class DevialetMediaPlayer(DevialetCoordinatorEntity, MediaPlayerEntity):
         attributes: dict[str, object] = {}
         if source_state and source_state.source:
             attributes["source_type"] = source_state.source.type
+        attributes["device_available_features"] = sorted(data.device.available_features)
+        attributes["system_available_features"] = sorted(data.system.available_features)
+        attributes["firmware_family"] = data.device.firmware_family
+        attributes["ip_control_version"] = data.device.ip_control_version
+        attributes["device_model"] = data.device.model
+        attributes["device_model_family"] = data.device.model_family
+        attributes["firmware_version"] = (
+            data.device.release.version or data.device.release.canonical_version
+        )
         if stream_info:
             attributes["stream_codec"] = stream_info.codec
             attributes["stream_channels"] = stream_info.channels

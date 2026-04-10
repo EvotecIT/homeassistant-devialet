@@ -45,7 +45,7 @@ This checklist tracks what the repository already covers and what still needs wo
 ## Home Assistant Polish
 
 - [ ] Add more dedicated config entities once payloads are known
-- [ ] Improve diagnostics to surface capability detection more explicitly
+- [x] Improve diagnostics to surface capability detection more explicitly
 - [ ] Add repair guidance for unsupported or changing device endpoints
 - [ ] Consider a button platform if Bluetooth pairing is exposed there
 

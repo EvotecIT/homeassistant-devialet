@@ -26,6 +26,7 @@ The goal is broader Devialet support over time, while keeping the integration st
 - volume and mute
 - Dione features such as `night mode`, `rendering mode`, `LED mode`, working auto power-off controls, and Bluetooth pairing
 - useful diagnostics and stream metadata
+- capability details exposed on the media player for troubleshooting and model-specific support
 
 ## 🏠 Installation
 

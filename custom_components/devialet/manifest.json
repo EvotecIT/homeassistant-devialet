@@ -2,12 +2,14 @@
   "domain": "devialet",
   "name": "Devialet",
   "version": "0.1.0",
-  "codeowners": [],
+  "codeowners": ["@EvotecIT", "@PrzemyslawKlys"],
   "config_flow": true,
+  "documentation": "https://github.com/EvotecIT/homeassistant-devialet",
   "integration_type": "device",
   "iot_class": "local_polling",
+  "issue_tracker": "https://github.com/EvotecIT/homeassistant-devialet/issues",
+  "loggers": ["custom_components.devialet"],
   "after_dependencies": ["zeroconf"],
   "zeroconf": ["_devialet-http._tcp.local."],
   "quality_scale": "bronze"
 }
-

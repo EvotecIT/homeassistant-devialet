@@ -24,7 +24,7 @@ The goal is broader Devialet support over time, while keeping the integration st
 - media player controls
 - source selection
 - volume and mute
-- Dione features such as `night mode` and `rendering mode`
+- Dione features such as `night mode`, `rendering mode`, `LED mode`, auto power-off period, and Bluetooth pairing
 - useful diagnostics and stream metadata
 
 ## 🏠 Installation
@@ -81,7 +81,7 @@ That means the protocol layer is reusable outside Home Assistant for scripts, to
 ## 🛣️ Roadmap
 
 - next tracked work lives in `docs/feature-checklist.md`
-- top priorities are writable LED and power-management controls plus Bluetooth pairing exposure
+- top priorities are confirming the real auto power-off enable enum and the remaining Dione-only settings
 - broader model validation remains important beyond Dione
 
 ## 🛠️ Development

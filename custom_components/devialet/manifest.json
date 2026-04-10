@@ -10,6 +10,6 @@
   "issue_tracker": "https://github.com/EvotecIT/homeassistant-devialet/issues",
   "loggers": ["custom_components.devialet"],
   "quality_scale": "bronze",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "zeroconf": ["_devialet-http._tcp.local."]
 }

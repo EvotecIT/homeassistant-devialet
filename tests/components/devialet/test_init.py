@@ -86,8 +86,8 @@ async def test_setup_creates_expected_entities(hass, mock_config_entry) -> None:
 
     assert hass.states.get("media_player.dione").state == "playing"
     assert hass.states.get("switch.dione_night_mode").state == "off"
-    assert hass.states.get("switch.dione_auto_power_off").state == "off"
     assert hass.states.get("select.dione_rendering_mode").state == "movie"
+    assert hass.states.get("select.dione_led_mode").state == "auto"
     assert hass.states.get("number.dione_auto_power_off_period").state == "90"
     assert hass.states.get("button.dione_start_bluetooth_pairing").state == "unknown"
     assert hass.states.get("sensor.dione_codec").state == "pcm"
@@ -129,21 +129,6 @@ async def test_switch_and_select_use_client_methods(hass, mock_config_entry) -> 
 
     with patch.object(
         coordinator.client,
-        "async_set_auto_power_off_enabled",
-        AsyncMock(),
-    ) as set_auto_power_off:
-        with aioresponses() as mocked:
-            _mock_refresh_endpoints(mocked)
-            await hass.services.async_call(
-                SWITCH_DOMAIN,
-                SERVICE_TURN_ON,
-                {ATTR_ENTITY_ID: "switch.dione_auto_power_off"},
-                blocking=True,
-            )
-        set_auto_power_off.assert_awaited_once_with(True, current_period=90)
-
-    with patch.object(
-        coordinator.client,
         "async_set_rendering_mode",
         AsyncMock(),
     ) as set_rendering_mode:
@@ -157,8 +142,26 @@ async def test_switch_and_select_use_client_methods(hass, mock_config_entry) -> 
                     "option": "music",
                 },
                 blocking=True,
-            )
+        )
         set_rendering_mode.assert_awaited_once_with("music")
+
+    with patch.object(
+        coordinator.client,
+        "async_set_led_mode",
+        AsyncMock(),
+    ) as set_led_mode:
+        with aioresponses() as mocked:
+            _mock_refresh_endpoints(mocked)
+            await hass.services.async_call(
+                SELECT_DOMAIN,
+                SERVICE_SELECT_OPTION,
+                {
+                    ATTR_ENTITY_ID: "select.dione_led_mode",
+                    "option": "off",
+                },
+                blocking=True,
+            )
+        set_led_mode.assert_awaited_once_with("off", led_control="manual")
 
     with patch.object(
         coordinator.client,
@@ -194,7 +197,7 @@ async def test_switch_and_select_use_client_methods(hass, mock_config_entry) -> 
                 },
                 blocking=True,
             )
-        set_auto_power_off_period.assert_awaited_once_with(120, enabled=False)
+        set_auto_power_off_period.assert_awaited_once_with(120)
 
     with patch.object(
         coordinator.client,

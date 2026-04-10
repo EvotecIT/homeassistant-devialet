@@ -16,14 +16,14 @@ This checklist tracks what the repository already covers and what still needs wo
 
 ## High-Priority Next
 
-- [ ] Writable LED controls
-  - [ ] expose `ledMode` as a writable Home Assistant entity
-  - [ ] decide whether `ledControl` should be a `select` or `switch`
-  - [ ] validate payloads on a real Dione before exposing broadly
-- [x] Writable power management
-  - [x] expose auto power-off enabled/disabled
+- [x] Writable LED mode
+  - [x] expose `ledMode` as a writable Home Assistant entity
+  - [x] validate payloads on a real Dione
+  - [ ] decide whether `ledControl` should stay read-only or become a separate entity on other models
+- Partial writable power management
+  - [ ] confirm the real write enum for enabling auto power-off on Dione firmware `2.18.6`
   - [x] expose auto power-off period
-  - [ ] confirm the write payload shape on a live device after the Dione IP is rediscovered
+  - [x] keep read-only visibility of the current auto power-off mode
 - [x] Bluetooth pairing button or service
   - [x] expose `startAdvertising` safely from Home Assistant
   - [ ] add a user-facing description and warning text

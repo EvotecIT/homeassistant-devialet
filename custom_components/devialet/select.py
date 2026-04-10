@@ -3,16 +3,20 @@
 from __future__ import annotations
 
 from homeassistant.components.select import SelectEntity
+from homeassistant.const import EntityCategory
 
-from .const import FEATURE_RENDERING_MODE
+from .const import FEATURE_LED_MODE, FEATURE_RENDERING_MODE
 from .entity import DevialetCoordinatorEntity
 
 
 async def async_setup_entry(hass, entry, async_add_entities) -> None:
     """Set up Devialet selects."""
     entities: list[SelectEntity] = []
-    if FEATURE_RENDERING_MODE in entry.runtime_data.data.system.available_features:
+    data = entry.runtime_data.data
+    if FEATURE_RENDERING_MODE in data.system.available_features:
         entities.append(DevialetRenderingModeSelect(entry.runtime_data))
+    if FEATURE_LED_MODE in data.system.available_features and data.led_mode is not None:
+        entities.append(DevialetLedModeSelect(entry.runtime_data))
     async_add_entities(entities)
 
 
@@ -45,4 +49,36 @@ class DevialetRenderingModeSelect(DevialetCoordinatorEntity, SelectEntity):
         """Change the rendering mode."""
         await self._async_perform(
             self.coordinator.client.async_set_rendering_mode(option)
+        )
+
+
+class DevialetLedModeSelect(DevialetCoordinatorEntity, SelectEntity):
+    """Select entity for LED mode."""
+
+    _attr_name = "LED mode"
+    _attr_entity_category = EntityCategory.CONFIG
+    _attr_icon = "mdi:led-strip-variant"
+    _attr_options = ["auto", "on", "off"]
+
+    def __init__(self, coordinator) -> None:
+        """Initialize the select."""
+        super().__init__(coordinator, "led_mode_select")
+
+    @property
+    def current_option(self) -> str | None:
+        """Return the active LED mode."""
+        led_mode = self.coordinator.data.led_mode
+        if led_mode is None:
+            return None
+        return led_mode.led_mode
+
+    async def async_select_option(self, option: str) -> None:
+        """Change the LED mode."""
+        led_mode = self.coordinator.data.led_mode
+        current_control = None if led_mode is None else led_mode.led_control
+        await self._async_perform(
+            self.coordinator.client.async_set_led_mode(
+                option,
+                led_control=current_control,
+            )
         )

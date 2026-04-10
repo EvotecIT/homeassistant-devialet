@@ -92,18 +92,34 @@ async def test_async_set_rendering_mode_posts_expected_payload() -> None:
 
 
 @pytest.mark.asyncio
-async def test_async_set_auto_power_off_enabled_posts_expected_payload() -> None:
-    """Auto power-off writes should preserve the configured period."""
+async def test_async_set_led_mode_posts_expected_payload() -> None:
+    """LED mode writes should follow the observed Dione payload shape."""
     session = AsyncMock(spec=aiohttp.ClientSession)
     client = DevialetApiClient(TEST_HOST, session)
     client._request_json = AsyncMock(return_value={})  # type: ignore[method-assign]
 
-    await client.async_set_auto_power_off_enabled(True, current_period=90)
+    await client.async_set_led_mode("off", led_control="manual")
+
+    client._request_json.assert_awaited_once_with(
+        "POST",
+        LED_MODE_ENDPOINT,
+        payload={"ledMode": "off", "ledControl": "manual"},
+    )
+
+
+@pytest.mark.asyncio
+async def test_async_set_auto_power_off_period_posts_period_only() -> None:
+    """Power-management period writes should avoid guessing the enable enum."""
+    session = AsyncMock(spec=aiohttp.ClientSession)
+    client = DevialetApiClient(TEST_HOST, session)
+    client._request_json = AsyncMock(return_value={})  # type: ignore[method-assign]
+
+    await client.async_set_auto_power_off_period(120)
 
     client._request_json.assert_awaited_once_with(
         "POST",
         POWER_MANAGEMENT_ENDPOINT,
-        payload={"autoPowerOff": "enabled", "autoPowerOffPeriod": 90},
+        payload={"autoPowerOffPeriod": 120},
     )
 
 

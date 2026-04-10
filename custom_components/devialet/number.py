@@ -45,11 +45,6 @@ class DevialetAutoPowerOffPeriodNumber(DevialetCoordinatorEntity, NumberEntity):
 
     async def async_set_native_value(self, value: float) -> None:
         """Set the power-off period."""
-        power = self.coordinator.data.power_management
-        enabled = None if power is None else power.auto_power_off == "enabled"
         await self._async_perform(
-            self.coordinator.client.async_set_auto_power_off_period(
-                int(value),
-                enabled=enabled,
-            )
+            self.coordinator.client.async_set_auto_power_off_period(int(value))
         )

@@ -32,7 +32,7 @@ async def main() -> None:
         snapshot = await client.async_refresh()
         print(snapshot.device.device_name)
         print(snapshot.system.system_name)
-        print(snapshot.volume.level if snapshot.volume else "no volume data")
+        print(snapshot.volume.volume if snapshot.volume else "no volume data")
 
 
 asyncio.run(main())
@@ -92,6 +92,8 @@ These are especially relevant for Dione and other devices that expose the same l
 
 - `async_set_night_mode(enabled)`
 - `async_set_rendering_mode(mode)`
+- `async_set_led_mode(mode, led_control=None)`
+- `async_set_auto_power_off_period(period)`
 - `async_turn_off()`
 - `async_start_bluetooth_pairing()`
 

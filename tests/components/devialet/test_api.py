@@ -19,6 +19,7 @@ from custom_components.devialet.const import (
     SYSTEM_INFO_ENDPOINT,
     VOLUME_ENDPOINT,
 )
+from custom_components.devialet.devialet_client.exceptions import DevialetResponseError
 from tests.conftest import (
     CURRENT_SOURCE_PAYLOAD,
     DEVICE_PAYLOAD,
@@ -103,4 +104,57 @@ async def test_async_set_auto_power_off_enabled_posts_expected_payload() -> None
         "POST",
         POWER_MANAGEMENT_ENDPOINT,
         payload={"autoPowerOff": "enabled", "autoPowerOffPeriod": 90},
+    )
+
+
+class _FakeResponse:
+    """Minimal aiohttp-like response for client tests."""
+
+    def __init__(self, *, status: int, text: str, content_type: str) -> None:
+        self.status = status
+        self._text = text
+        self.headers = {"Content-Type": content_type}
+
+    async def text(self) -> str:
+        """Return the mocked response body."""
+        return self._text
+
+
+class _FakeRequestContext:
+    """Async context manager wrapper for a fake response."""
+
+    def __init__(self, response: _FakeResponse) -> None:
+        self._response = response
+
+    async def __aenter__(self) -> _FakeResponse:
+        """Enter the async context."""
+        return self._response
+
+    async def __aexit__(self, exc_type, exc, tb) -> None:
+        """Exit the async context."""
+        return None
+
+
+@pytest.mark.asyncio
+async def test_request_json_reports_web_ui_shell_payload() -> None:
+    """HTML shell responses should raise a specific web-ui error."""
+    session = AsyncMock(spec=aiohttp.ClientSession)
+    session.request.return_value = _FakeRequestContext(
+        _FakeResponse(
+            status=200,
+            content_type="text/html",
+            text=(
+                "<!doctype html><html><head><title>Webui</title></head>"
+                "<body><app-root></app-root></body></html>"
+            ),
+        )
+    )
+    client = DevialetApiClient(TEST_HOST, session)
+
+    with pytest.raises(DevialetResponseError) as exc_info:
+        await client._request_json("GET", DEVICE_INFO_ENDPOINT)
+
+    assert (
+        str(exc_info.value)
+        == "Devialet host returned the web UI shell instead of the IP Control JSON API"
     )

@@ -334,6 +334,7 @@ class DevialetApiClient:
         try:
             async with self._session.request(method, url, **request_kwargs) as response:
                 response_text = await response.text()
+                response_content_type = response.headers.get("Content-Type", "")
         except aiohttp.ClientError as err:
             raise DevialetConnectionError(str(err)) from err
         except TimeoutError as err:
@@ -354,6 +355,15 @@ class DevialetApiClient:
 
         if not response_text.strip():
             return {}
+
+        if self._looks_like_web_ui_shell(response_text, response_content_type):
+            raise DevialetResponseError(
+                (
+                    "Devialet host returned the web UI shell instead of the "
+                    "IP Control JSON API"
+                ),
+                status=response.status,
+            )
 
         try:
             data = json.loads(response_text)
@@ -385,3 +395,16 @@ class DevialetApiClient:
         """Build a full request URL."""
         endpoint = endpoint if endpoint.startswith("/") else f"/{endpoint}"
         return f"http://{self._host}:{self._port}{self._path}{endpoint}"
+
+    @staticmethod
+    def _looks_like_web_ui_shell(response_text: str, content_type: str) -> bool:
+        """Return whether the response looks like the speaker web UI shell."""
+        if "text/html" not in content_type.lower():
+            return False
+
+        normalized = response_text.lower()
+        return (
+            "<!doctype html" in normalized
+            and "<app-root" in normalized
+            and "<title>webui</title>" in normalized
+        )

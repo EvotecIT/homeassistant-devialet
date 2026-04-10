@@ -58,6 +58,10 @@ This repository now ships two usable layers:
 - `devialet_client` for direct Python access to the local Devialet IP Control API
 - the Home Assistant integration in `custom_components/devialet`
 
+Library docs: `docs/python-library.md`
+
+Runnable example: `examples/python_client.py`
+
 Example:
 
 ```python
@@ -77,14 +81,13 @@ That means the protocol layer is reusable outside Home Assistant for scripts, to
 - expand writable settings safely after endpoint confirmation
 - improve support for additional Devialet models
 - keep aligning with Home Assistant best practices
-- eventually extract the protocol layer into a reusable Python package if it stabilizes enough
 
 ## 🛠️ Development
 
 ```bash
 python -m pip install -e .[test]
 ruff check .
-python -m compileall custom_components tests
+python -m compileall devialet_client custom_components tests examples
 pytest
 ```
 

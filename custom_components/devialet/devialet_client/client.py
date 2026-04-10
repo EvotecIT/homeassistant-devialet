@@ -282,6 +282,18 @@ class DevialetApiClient:
                 payload=payload,
             )
 
+    async def async_set_auto_power_off_enabled(
+        self,
+        enabled: bool,
+        *,
+        current_period: int | None = None,
+    ) -> None:
+        """Enable or disable automatic power off."""
+        await self.async_set_power_management(
+            auto_power_off="always" if enabled else "disabled",
+            auto_power_off_period=current_period,
+        )
+
     async def async_set_auto_power_off_period(
         self,
         period: int,

@@ -93,6 +93,7 @@ These are especially relevant for Dione and other devices that expose the same l
 - `async_set_night_mode(enabled)`
 - `async_set_rendering_mode(mode)`
 - `async_set_led_mode(mode, led_control=None)`
+- `async_set_auto_power_off_enabled(enabled, current_period=None)`
 - `async_set_auto_power_off_period(period)`
 - `async_turn_off()`
 - `async_start_bluetooth_pairing()`

@@ -86,6 +86,7 @@ async def test_setup_creates_expected_entities(hass, mock_config_entry) -> None:
 
     assert hass.states.get("media_player.dione").state == "playing"
     assert hass.states.get("switch.dione_night_mode").state == "off"
+    assert hass.states.get("switch.dione_auto_power_off").state == "off"
     assert hass.states.get("select.dione_rendering_mode").state == "movie"
     assert hass.states.get("select.dione_led_mode").state == "auto"
     assert hass.states.get("number.dione_auto_power_off_period").state == "90"
@@ -126,6 +127,21 @@ async def test_switch_and_select_use_client_methods(hass, mock_config_entry) -> 
                 blocking=True,
             )
         set_night_mode.assert_awaited_once_with(True)
+
+    with patch.object(
+        coordinator.client,
+        "async_set_auto_power_off_enabled",
+        AsyncMock(),
+    ) as set_auto_power_off:
+        with aioresponses() as mocked:
+            _mock_refresh_endpoints(mocked)
+            await hass.services.async_call(
+                SWITCH_DOMAIN,
+                SERVICE_TURN_ON,
+                {ATTR_ENTITY_ID: "switch.dione_auto_power_off"},
+                blocking=True,
+            )
+        set_auto_power_off.assert_awaited_once_with(True, current_period=90)
 
     with patch.object(
         coordinator.client,

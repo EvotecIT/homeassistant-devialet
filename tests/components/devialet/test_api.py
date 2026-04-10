@@ -123,6 +123,22 @@ async def test_async_set_auto_power_off_period_posts_period_only() -> None:
     )
 
 
+@pytest.mark.asyncio
+async def test_async_set_auto_power_off_enabled_uses_real_dione_enum() -> None:
+    """Auto power-off writes should use the live-validated Dione enum values."""
+    session = AsyncMock(spec=aiohttp.ClientSession)
+    client = DevialetApiClient(TEST_HOST, session)
+    client._request_json = AsyncMock(return_value={})  # type: ignore[method-assign]
+
+    await client.async_set_auto_power_off_enabled(True, current_period=90)
+
+    client._request_json.assert_awaited_once_with(
+        "POST",
+        POWER_MANAGEMENT_ENDPOINT,
+        payload={"autoPowerOff": "always", "autoPowerOffPeriod": 90},
+    )
+
+
 class _FakeResponse:
     """Minimal aiohttp-like response for client tests."""
 

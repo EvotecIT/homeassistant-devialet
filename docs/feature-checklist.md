@@ -20,10 +20,10 @@ This checklist tracks what the repository already covers and what still needs wo
   - [x] expose `ledMode` as a writable Home Assistant entity
   - [x] validate payloads on a real Dione
   - [ ] decide whether `ledControl` should stay read-only or become a separate entity on other models
-- Partial writable power management
-  - [ ] confirm the real write enum for enabling auto power-off on Dione firmware `2.18.6`
+- [x] Writable power management
+  - [x] confirm the real write enum for enabling auto power-off on Dione firmware `2.18.6`
   - [x] expose auto power-off period
-  - [x] keep read-only visibility of the current auto power-off mode
+  - [x] expose working enabled/disabled control
 - [x] Bluetooth pairing button or service
   - [x] expose `startAdvertising` safely from Home Assistant
   - [ ] add a user-facing description and warning text

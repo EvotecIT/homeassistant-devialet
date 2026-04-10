@@ -24,7 +24,6 @@ async def async_setup_entry(hass, entry: DevialetConfigEntry) -> bool:
     await coordinator.async_config_entry_first_refresh()
     entry.runtime_data = coordinator
     await _async_migrate_media_player_entity(hass, entry, coordinator)
-    await _async_cleanup_stale_entities(hass, entry, coordinator)
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     return True
@@ -80,25 +79,3 @@ async def _async_migrate_media_player_entity(
         new_unique_id=current_unique_id,
     )
 
-
-async def _async_cleanup_stale_entities(
-    hass,
-    entry: DevialetConfigEntry,
-    coordinator: DevialetCoordinator,
-) -> None:
-    """Remove stale entities from older custom-integration revisions."""
-    entity_registry = er.async_get(hass)
-    serial = coordinator.data.device.serial
-    if serial is None:
-        return
-
-    stale_unique_ids = {
-        f"{serial}_auto_power_off",
-    }
-
-    for registry_entry in er.async_entries_for_config_entry(
-        entity_registry,
-        entry.entry_id,
-    ):
-        if registry_entry.unique_id in stale_unique_ids:
-            entity_registry.async_remove(registry_entry.entity_id)

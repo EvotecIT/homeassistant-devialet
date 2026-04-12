@@ -9,7 +9,6 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.devialet.const import (
     CONF_ENABLE_DEVICE_SETTINGS_SENSORS,
-    CONF_ENABLE_STREAM_DIAGNOSTICS,
     CONF_PATH,
     DEFAULT_PATH,
     DOMAIN,
@@ -167,7 +166,6 @@ def mock_config_entry() -> MockConfigEntry:
             CONF_PATH: DEFAULT_PATH,
         },
         options={
-            CONF_ENABLE_STREAM_DIAGNOSTICS: True,
             CONF_ENABLE_DEVICE_SETTINGS_SENSORS: True,
         },
     )

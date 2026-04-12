@@ -13,11 +13,9 @@ from homeassistant.helpers.service_info.zeroconf import ZeroconfServiceInfo
 from .api import DevialetApiClient
 from .const import (
     CONF_ENABLE_DEVICE_SETTINGS_SENSORS,
-    CONF_ENABLE_STREAM_DIAGNOSTICS,
     CONF_PATH,
     CONF_SCAN_INTERVAL,
     DEFAULT_ENABLE_DEVICE_SETTINGS_SENSORS,
-    DEFAULT_ENABLE_STREAM_DIAGNOSTICS,
     DEFAULT_PATH,
     DEFAULT_PORT,
     DEFAULT_SCAN_INTERVAL_SECONDS,
@@ -228,13 +226,6 @@ class DevialetOptionsFlow(OptionsFlow):
                             max=MAX_SCAN_INTERVAL_SECONDS,
                         ),
                     ),
-                    vol.Optional(
-                        CONF_ENABLE_STREAM_DIAGNOSTICS,
-                        default=self.config_entry.options.get(
-                            CONF_ENABLE_STREAM_DIAGNOSTICS,
-                            DEFAULT_ENABLE_STREAM_DIAGNOSTICS,
-                        ),
-                    ): bool,
                     vol.Optional(
                         CONF_ENABLE_DEVICE_SETTINGS_SENSORS,
                         default=self.config_entry.options.get(

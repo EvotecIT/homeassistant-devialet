@@ -20,6 +20,7 @@ from homeassistant.components.select import DOMAIN as SELECT_DOMAIN
 from homeassistant.components.select import SERVICE_SELECT_OPTION
 from homeassistant.components.switch import DOMAIN as SWITCH_DOMAIN
 from homeassistant.const import ATTR_ENTITY_ID, SERVICE_TURN_ON
+from homeassistant.helpers import entity_registry as er
 
 from tests.conftest import (
     CURRENT_SOURCE_PAYLOAD,
@@ -91,10 +92,37 @@ async def test_setup_creates_expected_entities(hass, mock_config_entry) -> None:
     assert hass.states.get("select.dione_led_mode").state == "auto"
     assert hass.states.get("number.dione_auto_power_off_period").state == "90.0"
     assert hass.states.get("button.dione_start_bluetooth_pairing").state == "unknown"
-    assert hass.states.get("sensor.dione_codec").state == "pcm"
-    assert hass.states.get("sensor.dione_channels").state == "5.1.2"
-    assert hass.states.get("binary_sensor.dione_stream_lock").state == "on"
     assert hass.states.get("sensor.dione_auto_power_off_period").state == "90"
+    assert hass.states.get("sensor.dione_codec") is None
+    assert hass.states.get("sensor.dione_channels") is None
+    assert hass.states.get("binary_sensor.dione_stream_lock") is None
+
+    entity_registry = er.async_get(hass)
+    assert (
+        entity_registry.async_get("sensor.dione_codec").disabled_by
+        is er.RegistryEntryDisabler.INTEGRATION
+    )
+    assert (
+        entity_registry.async_get("sensor.dione_channels").disabled_by
+        is er.RegistryEntryDisabler.INTEGRATION
+    )
+    assert (
+        entity_registry.async_get("sensor.dione_sampling_rate").disabled_by
+        is er.RegistryEntryDisabler.INTEGRATION
+    )
+    assert (
+        entity_registry.async_get("sensor.dione_bit_depth").disabled_by
+        is er.RegistryEntryDisabler.INTEGRATION
+    )
+    assert (
+        entity_registry.async_get("binary_sensor.dione_stream_lock").disabled_by
+        is er.RegistryEntryDisabler.INTEGRATION
+    )
+    assert (
+        entity_registry.async_get("binary_sensor.dione_lossless").disabled_by
+        is er.RegistryEntryDisabler.INTEGRATION
+    )
+
     media_player_state = hass.states.get("media_player.dione")
     assert media_player_state.attributes["device_available_features"] == [
         "explicitInstallationId",

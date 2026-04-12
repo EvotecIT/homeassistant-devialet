@@ -10,9 +10,7 @@ from homeassistant.const import EntityCategory, UnitOfFrequency, UnitOfTime
 
 from .const import (
     CONF_ENABLE_DEVICE_SETTINGS_SENSORS,
-    CONF_ENABLE_STREAM_DIAGNOSTICS,
     DEFAULT_ENABLE_DEVICE_SETTINGS_SENSORS,
-    DEFAULT_ENABLE_STREAM_DIAGNOSTICS,
     FEATURE_LED_MODE,
     FEATURE_POWER_MANAGEMENT,
     source_label,
@@ -42,6 +40,7 @@ SENSOR_DESCRIPTIONS: tuple[DevialetSensorDescription, ...] = (
         key="codec",
         name="Codec",
         entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
         value_fn=lambda data: (
             data.source_state.stream_info.codec
             if data.source_state and data.source_state.stream_info
@@ -52,6 +51,7 @@ SENSOR_DESCRIPTIONS: tuple[DevialetSensorDescription, ...] = (
         key="channels",
         name="Channels",
         entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
         value_fn=lambda data: (
             data.source_state.stream_info.channels
             if data.source_state and data.source_state.stream_info
@@ -63,6 +63,7 @@ SENSOR_DESCRIPTIONS: tuple[DevialetSensorDescription, ...] = (
         name="Sampling rate",
         native_unit_of_measurement=UnitOfFrequency.HERTZ,
         entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
         value_fn=lambda data: (
             data.source_state.stream_info.sampling_rate
             if data.source_state and data.source_state.stream_info
@@ -73,6 +74,7 @@ SENSOR_DESCRIPTIONS: tuple[DevialetSensorDescription, ...] = (
         key="bit_depth",
         name="Bit depth",
         entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
         value_fn=lambda data: (
             data.source_state.stream_info.bit_depth
             if data.source_state and data.source_state.stream_info
@@ -112,21 +114,12 @@ SENSOR_DESCRIPTIONS: tuple[DevialetSensorDescription, ...] = (
 async def async_setup_entry(hass, entry, async_add_entities) -> None:
     """Set up Devialet sensors."""
     data = entry.runtime_data.data
-    enable_stream_diagnostics = entry.options.get(
-        CONF_ENABLE_STREAM_DIAGNOSTICS,
-        DEFAULT_ENABLE_STREAM_DIAGNOSTICS,
-    )
     enable_device_settings_sensors = entry.options.get(
         CONF_ENABLE_DEVICE_SETTINGS_SENSORS,
         DEFAULT_ENABLE_DEVICE_SETTINGS_SENSORS,
     )
     entities: list[SensorEntity] = []
     for description in SENSOR_DESCRIPTIONS:
-        if (
-            description.key in {"codec", "channels", "sampling_rate", "bit_depth"}
-            and not enable_stream_diagnostics
-        ):
-            continue
         if (
             description.key
             in {

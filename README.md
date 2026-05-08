@@ -32,6 +32,16 @@ The goal is broader Devialet support over time, while keeping the integration st
 
 ### HACS
 
+Click the button below to open this repository in HACS without guessing the owner, repository name, or category:
+
+[![Open your Home Assistant instance and open this repository inside HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=EvotecIT&repository=homeassistant-devialet&category=integration)
+
+After HACS installs the integration and Home Assistant has restarted, start setup here:
+
+[![Open your Home Assistant instance and start setting up Devialet.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=devialet)
+
+Manual HACS path:
+
 1. Open HACS.
 2. Add `https://github.com/EvotecIT/homeassistant-devialet` as a custom repository of type `Integration`.
 3. Install `Devialet`.

@@ -86,7 +86,14 @@ Manual HACS path:
 ## ✅ Current Status
 
 - best support today: Devialet Dione
-- local API confirmed and tested against Dione firmware `2.18.6`
+- local API confirmed against Dione firmware `2.20.1`
+- feature-aware refresh avoids querying Dione-only settings on models that do
+  not advertise them, while older devices without capability metadata retain
+  best-effort probing
+- temporary network/device outages mark entities unavailable and recover on a
+  later successful poll
+- test coverage runs on Python 3.13 and the current Python 3.14 Home Assistant
+  stack
 - structured so more Devialet models can be added as we confirm their local behavior
 
 The current investigation notes are in `docs/devialet-dione-investigation.md`.

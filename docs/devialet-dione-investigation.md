@@ -2,6 +2,10 @@
 
 Date: 2026-04-09
 
+Current verification: the local client refresh and capability surface were
+rechecked on 2026-07-27 with Dione firmware `2.20.1`. The historical findings
+below retain the firmware version used during the original investigation.
+
 ## Summary
 
 This investigation compared three things:

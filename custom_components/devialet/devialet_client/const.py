@@ -28,3 +28,8 @@ TURN_OFF_ENDPOINT = "/systems/current/powerOff"
 BLUETOOTH_ADVERTISING_ENDPOINT = "/systems/current/bluetooth/startAdvertising"
 
 SOURCE_SELECT_ENDPOINT_TEMPLATE = "/groups/current/sources/{source_id}/playback/play"
+
+FEATURE_NIGHT_MODE = "nightMode"
+FEATURE_RENDERING_MODE = "renderingMode"
+FEATURE_LED_MODE = "ledMode"
+FEATURE_POWER_MANAGEMENT = "powerManagement"

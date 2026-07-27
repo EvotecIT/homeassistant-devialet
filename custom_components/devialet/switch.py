@@ -5,16 +5,16 @@ from __future__ import annotations
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.const import EntityCategory
 
-from .const import FEATURE_NIGHT_MODE, FEATURE_POWER_MANAGEMENT
 from .entity import DevialetCoordinatorEntity
 
 
 async def async_setup_entry(hass, entry, async_add_entities) -> None:
     """Set up Devialet switches."""
     entities: list[SwitchEntity] = []
-    if FEATURE_NIGHT_MODE in entry.runtime_data.data.system.available_features:
+    data = entry.runtime_data.data
+    if data.night_mode is not None:
         entities.append(DevialetNightModeSwitch(entry.runtime_data))
-    if FEATURE_POWER_MANAGEMENT in entry.runtime_data.data.system.available_features:
+    if data.power_management is not None:
         entities.append(DevialetAutoPowerOffSwitch(entry.runtime_data))
     async_add_entities(entities)
 

@@ -5,7 +5,6 @@ from __future__ import annotations
 from homeassistant.components.number import NumberEntity
 from homeassistant.const import EntityCategory
 
-from .const import FEATURE_POWER_MANAGEMENT
 from .entity import DevialetCoordinatorEntity
 
 
@@ -13,8 +12,7 @@ async def async_setup_entry(hass, entry, async_add_entities) -> None:
     """Set up Devialet number entities."""
     data = entry.runtime_data.data
     if (
-        FEATURE_POWER_MANAGEMENT not in data.system.available_features
-        or data.power_management is None
+        data.power_management is None
         or data.power_management.auto_power_off_period is None
     ):
         return

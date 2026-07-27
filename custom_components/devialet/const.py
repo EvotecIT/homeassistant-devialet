@@ -5,6 +5,8 @@ from __future__ import annotations
 from collections import Counter
 from collections.abc import Iterable
 
+from .devialet_client import const as client_const
+
 DOMAIN = "devialet"
 MANUFACTURER = "Devialet"
 
@@ -19,6 +21,11 @@ CONF_SCAN_INTERVAL = "scan_interval"
 CONF_ENABLE_DEVICE_SETTINGS_SENSORS = "enable_device_settings_sensors"
 
 DEFAULT_ENABLE_DEVICE_SETTINGS_SENSORS = True
+
+FEATURE_NIGHT_MODE = client_const.FEATURE_NIGHT_MODE
+FEATURE_RENDERING_MODE = client_const.FEATURE_RENDERING_MODE
+FEATURE_LED_MODE = client_const.FEATURE_LED_MODE
+FEATURE_POWER_MANAGEMENT = client_const.FEATURE_POWER_MANAGEMENT
 
 DEVICE_INFO_ENDPOINT = "/devices/current"
 SYSTEM_INFO_ENDPOINT = "/systems/current"
@@ -43,11 +50,6 @@ TURN_OFF_ENDPOINT = "/systems/current/powerOff"
 BLUETOOTH_ADVERTISING_ENDPOINT = "/systems/current/bluetooth/startAdvertising"
 
 SOURCE_SELECT_ENDPOINT_TEMPLATE = "/groups/current/sources/{source_id}/playback/play"
-
-FEATURE_NIGHT_MODE = "nightMode"
-FEATURE_RENDERING_MODE = "renderingMode"
-FEATURE_LED_MODE = "ledMode"
-FEATURE_POWER_MANAGEMENT = "powerManagement"
 
 SOURCE_LABELS = {
     "airplay2": "AirPlay 2",

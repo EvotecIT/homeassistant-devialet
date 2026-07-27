@@ -11,8 +11,6 @@ from homeassistant.const import EntityCategory, UnitOfFrequency, UnitOfTime
 from .const import (
     CONF_ENABLE_DEVICE_SETTINGS_SENSORS,
     DEFAULT_ENABLE_DEVICE_SETTINGS_SENSORS,
-    FEATURE_LED_MODE,
-    FEATURE_POWER_MANAGEMENT,
     source_label,
 )
 from .entity import DevialetCoordinatorEntity
@@ -133,12 +131,12 @@ async def async_setup_entry(hass, entry, async_add_entities) -> None:
             continue
         if (
             description.key.startswith("led_")
-            and FEATURE_LED_MODE not in data.system.available_features
+            and data.led_mode is None
         ):
             continue
         if (
             description.key.startswith("auto_power_off")
-            and FEATURE_POWER_MANAGEMENT not in data.system.available_features
+            and data.power_management is None
         ):
             continue
         entities.append(DevialetSensor(entry.runtime_data, description))

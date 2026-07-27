@@ -4,11 +4,13 @@ from __future__ import annotations
 
 from collections.abc import Awaitable
 
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN, MANUFACTURER
 from .coordinator import DevialetCoordinator
+from .exceptions import DevialetError
 
 
 class DevialetCoordinatorEntity(CoordinatorEntity[DevialetCoordinator]):
@@ -51,5 +53,8 @@ class DevialetCoordinatorEntity(CoordinatorEntity[DevialetCoordinator]):
 
     async def _async_perform(self, action: Awaitable[object]) -> None:
         """Perform a device action and refresh the coordinator afterwards."""
-        await action
+        try:
+            await action
+        except DevialetError as err:
+            raise HomeAssistantError(str(err)) from err
         await self.coordinator.async_request_refresh()

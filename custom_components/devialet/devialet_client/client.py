@@ -14,6 +14,10 @@ from .const import (
     DEFAULT_PATH,
     DEFAULT_PORT,
     DEVICE_INFO_ENDPOINT,
+    FEATURE_LED_MODE,
+    FEATURE_NIGHT_MODE,
+    FEATURE_POWER_MANAGEMENT,
+    FEATURE_RENDERING_MODE,
     LED_MODE_ENDPOINT,
     MUTE_ENDPOINT,
     NEXT_ENDPOINT,
@@ -102,10 +106,39 @@ class DevialetApiClient:
 
         source_state = await self.async_get_source_state()
         volume = await self.async_get_volume()
-        night_mode = await self.async_get_night_mode()
-        rendering_mode = await self.async_get_rendering_mode()
-        led_mode = await self.async_get_led_mode()
-        power_management = await self.async_get_power_management()
+        night_mode = (
+            await self.async_get_night_mode()
+            if _supports_optional_feature(
+                FEATURE_NIGHT_MODE,
+                system.available_features,
+            )
+            else None
+        )
+        rendering_mode = (
+            await self.async_get_rendering_mode()
+            if _supports_optional_feature(
+                FEATURE_RENDERING_MODE,
+                system.available_features,
+            )
+            else None
+        )
+        led_mode = (
+            await self.async_get_led_mode()
+            if _supports_optional_feature(
+                FEATURE_LED_MODE,
+                system.available_features,
+            )
+            else None
+        )
+        power_management = (
+            await self.async_get_power_management()
+            if _supports_optional_feature(
+                FEATURE_POWER_MANAGEMENT,
+                system.available_features,
+                device.available_features,
+            )
+            else None
+        )
 
         return DevialetSnapshot(
             device=device,
@@ -423,3 +456,16 @@ class DevialetApiClient:
             and "<app-root" in normalized
             and "<title>webui</title>" in normalized
         )
+
+
+def _supports_optional_feature(
+    feature: str,
+    *available_feature_sets: frozenset[str],
+) -> bool:
+    """Return whether an optional endpoint should be queried.
+
+    Older devices may omit capability metadata entirely, so an empty combined
+    set retains the existing best-effort endpoint probing behavior.
+    """
+    advertised_features = frozenset().union(*available_feature_sets)
+    return not advertised_features or feature in advertised_features

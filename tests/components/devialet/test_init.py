@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
+from copy import deepcopy
 from unittest.mock import AsyncMock, patch
 
 import pytest
-from aioresponses import aioresponses
 from homeassistant.components.button import DOMAIN as BUTTON_DOMAIN
 from homeassistant.components.button import SERVICE_PRESS
 from homeassistant.components.media_player import (
@@ -20,8 +20,12 @@ from homeassistant.components.select import DOMAIN as SELECT_DOMAIN
 from homeassistant.components.select import SERVICE_SELECT_OPTION
 from homeassistant.components.switch import DOMAIN as SWITCH_DOMAIN
 from homeassistant.const import ATTR_ENTITY_ID, SERVICE_TURN_ON
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import entity_registry as er
 
+from custom_components.devialet.devialet_client.exceptions import (
+    DevialetConnectionError,
+)
 from tests.conftest import (
     CURRENT_SOURCE_PAYLOAD,
     DEVICE_PAYLOAD,
@@ -36,54 +40,57 @@ from tests.conftest import (
 )
 
 
-def _mock_refresh_endpoints(mocked: aioresponses) -> None:
+def _mock_refresh_endpoints(
+    mocked,
+    *,
+    device_payload=DEVICE_PAYLOAD,
+    system_payload=SYSTEM_PAYLOAD,
+) -> None:
     """Register the API endpoints used by the coordinator."""
-    mocked.get(f"{TEST_BASE_URL}/devices/current", payload=DEVICE_PAYLOAD, repeat=True)
-    mocked.get(f"{TEST_BASE_URL}/systems/current", payload=SYSTEM_PAYLOAD, repeat=True)
+    mocked.get(f"{TEST_BASE_URL}/devices/current", json=device_payload)
+    mocked.get(f"{TEST_BASE_URL}/systems/current", json=system_payload)
     mocked.get(
-        f"{TEST_BASE_URL}/groups/current/sources", payload=SOURCES_PAYLOAD, repeat=True
+        f"{TEST_BASE_URL}/groups/current/sources",
+        json=SOURCES_PAYLOAD,
     )
     mocked.get(
         f"{TEST_BASE_URL}/groups/current/sources/current",
-        payload=CURRENT_SOURCE_PAYLOAD,
-        repeat=True,
+        json=CURRENT_SOURCE_PAYLOAD,
     )
     mocked.get(
         f"{TEST_BASE_URL}/groups/current/sources/current/soundControl/volume",
-        payload=VOLUME_PAYLOAD,
-        repeat=True,
+        json=VOLUME_PAYLOAD,
     )
     mocked.get(
         f"{TEST_BASE_URL}/systems/current/settings/audio/nightMode",
-        payload=NIGHT_MODE_PAYLOAD,
-        repeat=True,
+        json=NIGHT_MODE_PAYLOAD,
     )
     mocked.get(
         f"{TEST_BASE_URL}/systems/current/settings/audio/renderingMode",
-        payload=RENDERING_MODE_PAYLOAD,
-        repeat=True,
+        json=RENDERING_MODE_PAYLOAD,
     )
     mocked.get(
         f"{TEST_BASE_URL}/systems/current/settings/ledMode",
-        payload=LED_MODE_PAYLOAD,
-        repeat=True,
+        json=LED_MODE_PAYLOAD,
     )
     mocked.get(
         f"{TEST_BASE_URL}/systems/current/settings/powerManagement",
-        payload=POWER_MANAGEMENT_PAYLOAD,
-        repeat=True,
+        json=POWER_MANAGEMENT_PAYLOAD,
     )
 
 
 @pytest.mark.asyncio
-async def test_setup_creates_expected_entities(hass, mock_config_entry) -> None:
+async def test_setup_creates_expected_entities(
+    hass,
+    mock_config_entry,
+    aioclient_mock,
+) -> None:
     """A config entry should create the expected entities."""
     mock_config_entry.add_to_hass(hass)
 
-    with aioresponses() as mocked:
-        _mock_refresh_endpoints(mocked)
-        assert await hass.config_entries.async_setup(mock_config_entry.entry_id)
-        await hass.async_block_till_done()
+    _mock_refresh_endpoints(aioclient_mock)
+    assert await hass.config_entries.async_setup(mock_config_entry.entry_id)
+    await hass.async_block_till_done()
 
     assert hass.states.get("media_player.dione").state == "playing"
     assert hass.states.get("switch.dione_night_mode").state == "off"
@@ -147,15 +154,123 @@ async def test_setup_creates_expected_entities(hass, mock_config_entry) -> None:
     assert media_player_state.attributes["rendering_mode"] == "movie"
 
 
+@pytest.mark.parametrize(
+    ("device_features", "system_features"),
+    [
+        (None, None),
+        (
+            ["powerManagement"],
+            ["ledMode", "nightMode", "renderingMode"],
+        ),
+    ],
+)
 @pytest.mark.asyncio
-async def test_switch_and_select_use_client_methods(hass, mock_config_entry) -> None:
+async def test_setup_exposes_successfully_probed_optional_features(
+    hass,
+    mock_config_entry,
+    aioclient_mock,
+    device_features,
+    system_features,
+) -> None:
+    """Entity setup should follow returned data, not capability metadata alone."""
+    device_payload = deepcopy(DEVICE_PAYLOAD)
+    system_payload = deepcopy(SYSTEM_PAYLOAD)
+    if device_features is None:
+        device_payload.pop("availableFeatures")
+    else:
+        device_payload["availableFeatures"] = device_features
+    if system_features is None:
+        system_payload.pop("availableFeatures")
+    else:
+        system_payload["availableFeatures"] = system_features
+
+    mock_config_entry.add_to_hass(hass)
+    _mock_refresh_endpoints(
+        aioclient_mock,
+        device_payload=device_payload,
+        system_payload=system_payload,
+    )
+
+    assert await hass.config_entries.async_setup(mock_config_entry.entry_id)
+    await hass.async_block_till_done()
+
+    assert hass.states.get("switch.dione_night_mode") is not None
+    assert hass.states.get("switch.dione_auto_power_off") is not None
+    assert hass.states.get("select.dione_rendering_mode") is not None
+    assert hass.states.get("select.dione_led_mode") is not None
+    assert hass.states.get("number.dione_auto_power_off_period") is not None
+    assert hass.states.get("sensor.dione_auto_power_off_period") is not None
+
+
+@pytest.mark.asyncio
+async def test_device_outage_marks_entities_unavailable_and_recovers(
+    hass,
+    mock_config_entry,
+    aioclient_mock,
+) -> None:
+    """A transient outage should not crash entities and recovery should be automatic."""
+    mock_config_entry.add_to_hass(hass)
+
+    _mock_refresh_endpoints(aioclient_mock)
+    assert await hass.config_entries.async_setup(mock_config_entry.entry_id)
+    await hass.async_block_till_done()
+
+    coordinator = mock_config_entry.runtime_data
+    aioclient_mock.clear_requests()
+    aioclient_mock.get(f"{TEST_BASE_URL}/devices/current", status=503)
+    await coordinator.async_refresh()
+    await hass.async_block_till_done()
+
+    assert hass.states.get("media_player.dione").state == "unavailable"
+
+    aioclient_mock.clear_requests()
+    _mock_refresh_endpoints(aioclient_mock)
+    await coordinator.async_refresh()
+    await hass.async_block_till_done()
+
+    assert hass.states.get("media_player.dione").state == "playing"
+
+
+@pytest.mark.asyncio
+async def test_device_action_surfaces_home_assistant_error(
+    hass,
+    mock_config_entry,
+    aioclient_mock,
+) -> None:
+    """Device connection failures should use Home Assistant's service error surface."""
+    mock_config_entry.add_to_hass(hass)
+
+    _mock_refresh_endpoints(aioclient_mock)
+    assert await hass.config_entries.async_setup(mock_config_entry.entry_id)
+    await hass.async_block_till_done()
+
+    coordinator = mock_config_entry.runtime_data
+    with patch.object(
+        coordinator.client,
+        "async_set_night_mode",
+        AsyncMock(side_effect=DevialetConnectionError("Speaker is offline")),
+    ):
+        with pytest.raises(HomeAssistantError, match="Speaker is offline"):
+            await hass.services.async_call(
+                SWITCH_DOMAIN,
+                SERVICE_TURN_ON,
+                {ATTR_ENTITY_ID: "switch.dione_night_mode"},
+                blocking=True,
+            )
+
+
+@pytest.mark.asyncio
+async def test_switch_and_select_use_client_methods(
+    hass,
+    mock_config_entry,
+    aioclient_mock,
+) -> None:
     """Entity services should delegate to the coordinator client."""
     mock_config_entry.add_to_hass(hass)
 
-    with aioresponses() as mocked:
-        _mock_refresh_endpoints(mocked)
-        assert await hass.config_entries.async_setup(mock_config_entry.entry_id)
-        await hass.async_block_till_done()
+    _mock_refresh_endpoints(aioclient_mock)
+    assert await hass.config_entries.async_setup(mock_config_entry.entry_id)
+    await hass.async_block_till_done()
 
     coordinator = mock_config_entry.runtime_data
 
@@ -164,14 +279,12 @@ async def test_switch_and_select_use_client_methods(hass, mock_config_entry) -> 
         "async_set_night_mode",
         AsyncMock(),
     ) as set_night_mode:
-        with aioresponses() as mocked:
-            _mock_refresh_endpoints(mocked)
-            await hass.services.async_call(
-                SWITCH_DOMAIN,
-                SERVICE_TURN_ON,
-                {ATTR_ENTITY_ID: "switch.dione_night_mode"},
-                blocking=True,
-            )
+        await hass.services.async_call(
+            SWITCH_DOMAIN,
+            SERVICE_TURN_ON,
+            {ATTR_ENTITY_ID: "switch.dione_night_mode"},
+            blocking=True,
+        )
         set_night_mode.assert_awaited_once_with(True)
 
     with patch.object(
@@ -179,14 +292,12 @@ async def test_switch_and_select_use_client_methods(hass, mock_config_entry) -> 
         "async_set_auto_power_off_enabled",
         AsyncMock(),
     ) as set_auto_power_off:
-        with aioresponses() as mocked:
-            _mock_refresh_endpoints(mocked)
-            await hass.services.async_call(
-                SWITCH_DOMAIN,
-                SERVICE_TURN_ON,
-                {ATTR_ENTITY_ID: "switch.dione_auto_power_off"},
-                blocking=True,
-            )
+        await hass.services.async_call(
+            SWITCH_DOMAIN,
+            SERVICE_TURN_ON,
+            {ATTR_ENTITY_ID: "switch.dione_auto_power_off"},
+            blocking=True,
+        )
         set_auto_power_off.assert_awaited_once_with(True, current_period=90)
 
     with patch.object(
@@ -194,16 +305,14 @@ async def test_switch_and_select_use_client_methods(hass, mock_config_entry) -> 
         "async_set_rendering_mode",
         AsyncMock(),
     ) as set_rendering_mode:
-        with aioresponses() as mocked:
-            _mock_refresh_endpoints(mocked)
-            await hass.services.async_call(
-                SELECT_DOMAIN,
-                SERVICE_SELECT_OPTION,
-                {
-                    ATTR_ENTITY_ID: "select.dione_rendering_mode",
-                    "option": "music",
-                },
-                blocking=True,
+        await hass.services.async_call(
+            SELECT_DOMAIN,
+            SERVICE_SELECT_OPTION,
+            {
+                ATTR_ENTITY_ID: "select.dione_rendering_mode",
+                "option": "music",
+            },
+            blocking=True,
         )
         set_rendering_mode.assert_awaited_once_with("music")
 
@@ -212,17 +321,15 @@ async def test_switch_and_select_use_client_methods(hass, mock_config_entry) -> 
         "async_set_led_mode",
         AsyncMock(),
     ) as set_led_mode:
-        with aioresponses() as mocked:
-            _mock_refresh_endpoints(mocked)
-            await hass.services.async_call(
-                SELECT_DOMAIN,
-                SERVICE_SELECT_OPTION,
-                {
-                    ATTR_ENTITY_ID: "select.dione_led_mode",
-                    "option": "off",
-                },
-                blocking=True,
-            )
+        await hass.services.async_call(
+            SELECT_DOMAIN,
+            SERVICE_SELECT_OPTION,
+            {
+                ATTR_ENTITY_ID: "select.dione_led_mode",
+                "option": "off",
+            },
+            blocking=True,
+        )
         set_led_mode.assert_awaited_once_with("off", led_control="manual")
 
     with patch.object(
@@ -230,35 +337,33 @@ async def test_switch_and_select_use_client_methods(hass, mock_config_entry) -> 
         "async_select_source",
         AsyncMock(),
     ) as select_source:
-        with aioresponses() as mocked:
-            _mock_refresh_endpoints(mocked)
-            await hass.services.async_call(
-                MEDIA_PLAYER_DOMAIN,
-                SERVICE_SELECT_SOURCE,
-                {
-                    ATTR_ENTITY_ID: "media_player.dione",
-                    "source": "spotifyconnect",
-                },
-                blocking=True,
-            )
-        select_source.assert_awaited_once_with("2aa14293-aa9e-4ade-ab45-27c89055ea64")
+        await hass.services.async_call(
+            MEDIA_PLAYER_DOMAIN,
+            SERVICE_SELECT_SOURCE,
+            {
+                ATTR_ENTITY_ID: "media_player.dione",
+                "source": "spotifyconnect",
+            },
+            blocking=True,
+        )
+        select_source.assert_awaited_once_with(
+            "00000000-0000-4000-8000-000000000105"
+        )
 
     with patch.object(
         coordinator.client,
         "async_set_auto_power_off_period",
         AsyncMock(),
     ) as set_auto_power_off_period:
-        with aioresponses() as mocked:
-            _mock_refresh_endpoints(mocked)
-            await hass.services.async_call(
-                NUMBER_DOMAIN,
-                SERVICE_SET_VALUE,
-                {
-                    ATTR_ENTITY_ID: "number.dione_auto_power_off_period",
-                    "value": 120,
-                },
-                blocking=True,
-            )
+        await hass.services.async_call(
+            NUMBER_DOMAIN,
+            SERVICE_SET_VALUE,
+            {
+                ATTR_ENTITY_ID: "number.dione_auto_power_off_period",
+                "value": 120,
+            },
+            blocking=True,
+        )
         set_auto_power_off_period.assert_awaited_once_with(120)
 
     with patch.object(
@@ -266,12 +371,10 @@ async def test_switch_and_select_use_client_methods(hass, mock_config_entry) -> 
         "async_start_bluetooth_pairing",
         AsyncMock(),
     ) as start_bluetooth_pairing:
-        with aioresponses() as mocked:
-            _mock_refresh_endpoints(mocked)
-            await hass.services.async_call(
-                BUTTON_DOMAIN,
-                SERVICE_PRESS,
-                {ATTR_ENTITY_ID: "button.dione_start_bluetooth_pairing"},
-                blocking=True,
-            )
+        await hass.services.async_call(
+            BUTTON_DOMAIN,
+            SERVICE_PRESS,
+            {ATTR_ENTITY_ID: "button.dione_start_bluetooth_pairing"},
+            blocking=True,
+        )
         start_bluetooth_pairing.assert_awaited_once_with()

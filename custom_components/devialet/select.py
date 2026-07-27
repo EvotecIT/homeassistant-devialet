@@ -5,7 +5,6 @@ from __future__ import annotations
 from homeassistant.components.select import SelectEntity
 from homeassistant.const import EntityCategory
 
-from .const import FEATURE_LED_MODE, FEATURE_RENDERING_MODE
 from .entity import DevialetCoordinatorEntity
 
 
@@ -13,9 +12,9 @@ async def async_setup_entry(hass, entry, async_add_entities) -> None:
     """Set up Devialet selects."""
     entities: list[SelectEntity] = []
     data = entry.runtime_data.data
-    if FEATURE_RENDERING_MODE in data.system.available_features:
+    if data.rendering_mode is not None:
         entities.append(DevialetRenderingModeSelect(entry.runtime_data))
-    if FEATURE_LED_MODE in data.system.available_features and data.led_mode is not None:
+    if data.led_mode is not None:
         entities.append(DevialetLedModeSelect(entry.runtime_data))
     async_add_entities(entities)
 

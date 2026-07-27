@@ -17,6 +17,11 @@ from custom_components.devialet.const import (
 TEST_HOST = "192.0.2.10"
 TEST_PORT = 80
 TEST_BASE_URL = f"http://{TEST_HOST}:{TEST_PORT}{DEFAULT_PATH}"
+TEST_DEVICE_ID = "00000000-0000-4000-8000-000000000001"
+TEST_GROUP_ID = "00000000-0000-4000-8000-000000000002"
+TEST_INSTALLATION_ID = "00000000-0000-4000-8000-000000000003"
+TEST_SYSTEM_ID = "00000000-0000-4000-8000-000000000004"
+TEST_SERIAL = "TEST-DIONE-0001"
 
 DEVICE_PAYLOAD = {
     "availableFeatures": [
@@ -25,11 +30,11 @@ DEVICE_PAYLOAD = {
         "powerManagement",
         "explicitInstallationId",
     ],
-    "deviceId": "a8be934d-fcdc-56d0-83a1-b51faa98d513",
+    "deviceId": TEST_DEVICE_ID,
     "deviceName": "Dione",
     "firmwareFamily": "DOS",
-    "groupId": "e13e163c-bbf6-5912-a77f-44805454c468",
-    "installationId": "f07a2da6-4242-5181-8e1c-d0c335b9fd73",
+    "groupId": TEST_GROUP_ID,
+    "installationId": TEST_INSTALLATION_ID,
     "ipControlVersion": "1",
     "isSystemLeader": True,
     "model": "Dione",
@@ -40,9 +45,9 @@ DEVICE_PAYLOAD = {
         "version": "2.18.6",
     },
     "role": "Mono",
-    "serial": "Q32Y00392TW1X",
+    "serial": TEST_SERIAL,
     "setupState": "finalized",
-    "systemId": "47366b80-39ea-594a-bad1-37deb6939ce2",
+    "systemId": TEST_SYSTEM_ID,
 }
 
 SYSTEM_PAYLOAD = {
@@ -55,16 +60,16 @@ SYSTEM_PAYLOAD = {
     ],
     "devices": [
         {
-            "deviceId": "a8be934d-fcdc-56d0-83a1-b51faa98d513",
+            "deviceId": TEST_DEVICE_ID,
             "deviceName": "Dione",
             "isSystemLeader": True,
             "role": "Mono",
-            "serial": "Q32Y00392TW1X",
+            "serial": TEST_SERIAL,
         }
     ],
-    "groupId": "e13e163c-bbf6-5912-a77f-44805454c468",
+    "groupId": TEST_GROUP_ID,
     "isGroupLeader": True,
-    "systemId": "47366b80-39ea-594a-bad1-37deb6939ce2",
+    "systemId": TEST_SYSTEM_ID,
     "systemName": "Dione",
     "systemType": "single",
 }
@@ -72,35 +77,35 @@ SYSTEM_PAYLOAD = {
 SOURCES_PAYLOAD = {
     "sources": [
         {
-            "deviceId": "a8be934d-fcdc-56d0-83a1-b51faa98d513",
-            "sourceId": "e890b148-43ad-40f5-af06-d6a6c8881d3a",
+            "deviceId": TEST_DEVICE_ID,
+            "sourceId": "00000000-0000-4000-8000-000000000101",
             "type": "bluetooth",
         },
         {
-            "deviceId": "a8be934d-fcdc-56d0-83a1-b51faa98d513",
-            "sourceId": "a11d3b06-c2d9-4a15-852f-8173bec0dd75",
+            "deviceId": TEST_DEVICE_ID,
+            "sourceId": "00000000-0000-4000-8000-000000000102",
             "streamLockAvailable": False,
             "type": "optical",
         },
         {
-            "deviceId": "a8be934d-fcdc-56d0-83a1-b51faa98d513",
-            "sourceId": "c0b4f9bf-0d6a-4abb-ae1d-4e307f9962bd",
+            "deviceId": TEST_DEVICE_ID,
+            "sourceId": "00000000-0000-4000-8000-000000000103",
             "type": "upnp",
         },
         {
-            "deviceId": "a8be934d-fcdc-56d0-83a1-b51faa98d513",
-            "sourceId": "2aa9e81b-90c4-4818-8e41-60eb976d8baf",
+            "deviceId": TEST_DEVICE_ID,
+            "sourceId": "00000000-0000-4000-8000-000000000104",
             "streamLockAvailable": True,
             "type": "hdmi",
         },
         {
-            "deviceId": "a8be934d-fcdc-56d0-83a1-b51faa98d513",
-            "sourceId": "2aa14293-aa9e-4ade-ab45-27c89055ea64",
+            "deviceId": TEST_DEVICE_ID,
+            "sourceId": "00000000-0000-4000-8000-000000000105",
             "type": "spotifyconnect",
         },
         {
-            "deviceId": "a8be934d-fcdc-56d0-83a1-b51faa98d513",
-            "sourceId": "31a01794-2ac3-4d31-8aca-cd19dc2834dd",
+            "deviceId": TEST_DEVICE_ID,
+            "sourceId": "00000000-0000-4000-8000-000000000106",
             "type": "airplay2",
         },
     ]
@@ -120,8 +125,8 @@ CURRENT_SOURCE_PAYLOAD = {
     "peerDeviceName": "",
     "playingState": "playing",
     "source": {
-        "deviceId": "a8be934d-fcdc-56d0-83a1-b51faa98d513",
-        "sourceId": "2aa9e81b-90c4-4818-8e41-60eb976d8baf",
+        "deviceId": TEST_DEVICE_ID,
+        "sourceId": "00000000-0000-4000-8000-000000000104",
         "type": "hdmi",
     },
     "streamInfo": {

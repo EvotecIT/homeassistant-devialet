@@ -13,6 +13,9 @@ This checklist tracks what the repository already covers and what still needs wo
 - [x] Stream and metadata read support in the reusable client
 - [x] Reusable `devialet_client` Python package
 - [x] HACS-ready packaging and first GitHub release
+- [x] Options flow compatibility with current Home Assistant
+- [x] Offline/unavailable state and recovery coverage
+- [x] Feature-aware refresh for models that advertise a smaller capability set
 
 ## High-Priority Next
 
@@ -39,7 +42,7 @@ This checklist tracks what the repository already covers and what still needs wo
 ## Broader Device Coverage
 
 - [ ] Validate support against more Devialet models besides Dione
-- [ ] Verify feature gating works correctly on models that do not expose Dione-only capabilities
+- [x] Verify feature gating avoids Dione-only endpoints when capabilities are absent
 - [ ] Add fixtures from more than one Devialet family
 
 ## Home Assistant Polish

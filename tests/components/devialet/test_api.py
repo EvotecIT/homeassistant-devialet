@@ -112,6 +112,41 @@ async def test_async_refresh_skips_unadvertised_optional_features() -> None:
 
 
 @pytest.mark.asyncio
+async def test_async_refresh_respects_explicitly_empty_capability_metadata() -> None:
+    """Explicit empty capability lists should suppress optional endpoint probing."""
+    session = AsyncMock(spec=aiohttp.ClientSession)
+    client = DevialetApiClient(TEST_HOST, session)
+    device_payload = deepcopy(DEVICE_PAYLOAD)
+    device_payload["availableFeatures"] = []
+    system_payload = deepcopy(SYSTEM_PAYLOAD)
+    system_payload["availableFeatures"] = []
+    responses = {
+        DEVICE_INFO_ENDPOINT: device_payload,
+        SYSTEM_INFO_ENDPOINT: system_payload,
+        SOURCES_ENDPOINT: SOURCES_PAYLOAD,
+        CURRENT_SOURCE_ENDPOINT: CURRENT_SOURCE_PAYLOAD,
+        VOLUME_ENDPOINT: VOLUME_PAYLOAD,
+    }
+    client._request_json = AsyncMock(  # type: ignore[method-assign]
+        side_effect=lambda method, endpoint, payload=None: responses[endpoint]
+    )
+
+    snapshot = await client.async_refresh()
+
+    assert snapshot.night_mode is None
+    assert snapshot.rendering_mode is None
+    assert snapshot.led_mode is None
+    assert snapshot.power_management is None
+    queried_endpoints = {
+        call.args[1] for call in client._request_json.await_args_list
+    }
+    assert NIGHT_MODE_ENDPOINT not in queried_endpoints
+    assert RENDERING_MODE_ENDPOINT not in queried_endpoints
+    assert LED_MODE_ENDPOINT not in queried_endpoints
+    assert POWER_MANAGEMENT_ENDPOINT not in queried_endpoints
+
+
+@pytest.mark.asyncio
 async def test_async_refresh_probes_features_when_metadata_is_missing() -> None:
     """Older models without capability metadata should retain endpoint probing."""
     session = AsyncMock(spec=aiohttp.ClientSession)

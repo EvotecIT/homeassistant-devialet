@@ -111,6 +111,7 @@ class DevialetApiClient:
             if _supports_optional_feature(
                 FEATURE_NIGHT_MODE,
                 system.available_features,
+                metadata_reported=system.available_features_reported,
             )
             else None
         )
@@ -119,6 +120,7 @@ class DevialetApiClient:
             if _supports_optional_feature(
                 FEATURE_RENDERING_MODE,
                 system.available_features,
+                metadata_reported=system.available_features_reported,
             )
             else None
         )
@@ -127,6 +129,7 @@ class DevialetApiClient:
             if _supports_optional_feature(
                 FEATURE_LED_MODE,
                 system.available_features,
+                metadata_reported=system.available_features_reported,
             )
             else None
         )
@@ -136,6 +139,10 @@ class DevialetApiClient:
                 FEATURE_POWER_MANAGEMENT,
                 system.available_features,
                 device.available_features,
+                metadata_reported=(
+                    system.available_features_reported
+                    or device.available_features_reported
+                ),
             )
             else None
         )
@@ -461,11 +468,12 @@ class DevialetApiClient:
 def _supports_optional_feature(
     feature: str,
     *available_feature_sets: frozenset[str],
+    metadata_reported: bool,
 ) -> bool:
     """Return whether an optional endpoint should be queried.
 
-    Older devices may omit capability metadata entirely, so an empty combined
-    set retains the existing best-effort endpoint probing behavior.
+    Older devices may omit capability metadata entirely, so the client retains
+    best-effort probing only when none of the relevant payloads reported it.
     """
     advertised_features = frozenset().union(*available_feature_sets)
-    return not advertised_features or feature in advertised_features
+    return feature in advertised_features or not metadata_reported

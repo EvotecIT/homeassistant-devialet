@@ -41,6 +41,7 @@ class DevialetDeviceInfo:
     role: str | None
     setup_state: str | None
     available_features: frozenset[str] = field(default_factory=frozenset)
+    available_features_reported: bool = False
     release: DevialetReleaseInfo = field(default_factory=DevialetReleaseInfo)
 
     @classmethod
@@ -62,6 +63,7 @@ class DevialetDeviceInfo:
             available_features=frozenset(
                 _as_str_list(payload.get("availableFeatures"))
             ),
+            available_features_reported="availableFeatures" in payload,
             release=DevialetReleaseInfo.from_dict(_as_dict(payload.get("release"))),
         )
 
@@ -76,6 +78,7 @@ class DevialetSystemInfo:
     group_id: str | None
     is_group_leader: bool | None
     available_features: frozenset[str] = field(default_factory=frozenset)
+    available_features_reported: bool = False
 
     @classmethod
     def from_dict(cls, payload: dict[str, object]) -> DevialetSystemInfo:
@@ -89,6 +92,7 @@ class DevialetSystemInfo:
             available_features=frozenset(
                 _as_str_list(payload.get("availableFeatures"))
             ),
+            available_features_reported="availableFeatures" in payload,
         )
 
 

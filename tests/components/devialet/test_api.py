@@ -21,6 +21,10 @@ from custom_components.devialet.const import (
     VOLUME_ENDPOINT,
 )
 from custom_components.devialet.devialet_client.exceptions import DevialetResponseError
+from custom_components.devialet.devialet_client.models import (
+    DevialetDeviceInfo,
+    DevialetReleaseInfo,
+)
 from tests.conftest import (
     CURRENT_SOURCE_PAYLOAD,
     DEVICE_PAYLOAD,
@@ -33,6 +37,20 @@ from tests.conftest import (
     TEST_HOST,
     VOLUME_PAYLOAD,
 )
+
+
+def test_device_info_preserves_positional_release_argument() -> None:
+    """Adding capability metadata state should preserve the public constructor."""
+    release = DevialetReleaseInfo(version="2.20.1")
+
+    device = DevialetDeviceInfo(
+        *([None] * 12),
+        frozenset(),
+        release,
+    )
+
+    assert device.release is release
+    assert device.available_features_reported is False
 
 
 @pytest.mark.asyncio

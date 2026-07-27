@@ -41,8 +41,8 @@ class DevialetDeviceInfo:
     role: str | None
     setup_state: str | None
     available_features: frozenset[str] = field(default_factory=frozenset)
-    available_features_reported: bool = False
     release: DevialetReleaseInfo = field(default_factory=DevialetReleaseInfo)
+    available_features_reported: bool = False
 
     @classmethod
     def from_dict(cls, payload: dict[str, object]) -> DevialetDeviceInfo:

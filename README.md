@@ -1,144 +1,98 @@
 # Devialet for Home Assistant
 
-![Devialet for Home Assistant — illustrative artwork](assets/homeassistant-devialet-social.png)
-
-*Illustrative artwork. Available controls depend on the device and integration support.*
+![Devialet for Home Assistant](assets/homeassistant-devialet-social.png)
 
 [![HACS Custom](https://img.shields.io/badge/HACS-Custom-41BDF5.svg?style=for-the-badge)](https://hacs.xyz/)
-[![Validate](https://img.shields.io/github/actions/workflow/status/EvotecIT/homeassistant-devialet/validate.yml?branch=main&style=for-the-badge&label=Validate)](https://github.com/EvotecIT/homeassistant-devialet/actions/workflows/validate.yml)
-[![Hassfest](https://img.shields.io/github/actions/workflow/status/EvotecIT/homeassistant-devialet/hassfest.yml?branch=main&style=for-the-badge&label=Hassfest)](https://github.com/EvotecIT/homeassistant-devialet/actions/workflows/hassfest.yml)
+[![CI](https://img.shields.io/github/actions/workflow/status/EvotecIT/homeassistant-devialet/validate.yml?branch=main&style=for-the-badge&label=CI)](https://github.com/EvotecIT/homeassistant-devialet/actions/workflows/validate.yml)
+[![License](https://img.shields.io/github/license/EvotecIT/homeassistant-devialet?style=for-the-badge)](LICENSE)
 
-Local-first Devialet support for Home Assistant, focused on reliability, clean setup, and controls that actually match what the speaker exposes on your network.
+## Overview
 
-![Devialet integration overview](assets/devialet-overview.png)
+Control Devialet speakers and soundbars through their local IP Control API.
+The integration adds discovery, a media player, and the settings advertised by
+the device.
+
+- Volume, mute, source selection, and supported playback controls.
+- Dione settings such as night mode, rendering mode, LEDs, and auto power-off.
+- Bluetooth pairing and optional diagnostic entities.
+
+**Dione has the strongest real-device validation.** Other models must expose a
+compatible local API; they are not guaranteed to provide Dione's settings.
+See [device support](docs/device-support.md) before relying on model-specific
+features.
+
+## Sponsor
+
+Support development and maintenance through
+[GitHub Sponsors](https://github.com/sponsors/PrzemyslawKlys).
+Sponsorship is optional; these projects remain open source.
 
 ## More for your Home Assistant home
 
-Other projects we maintain for the same setup:
+Other integrations and dashboards we maintain:
 
-- [Dreame & MOVA mowers](https://github.com/EvotecIT/homeassistant-dreamelawnmower) — mowing controls, maps, schedules, and supported cameras.
-- [Lawn Mower Card](https://github.com/EvotecIT/lovelace-lawn-mower-card) — a visual dashboard for mower state, maps, and controls.
-- [KEF](https://github.com/EvotecIT/homeassistant-kef) — local control for modern and legacy speaker families.
-- [Siegenia](https://github.com/EvotecIT/homeassistant-siegenia) — local control for supported window controllers.
-- [EasyControlX](https://github.com/EvotecIT/homeassistant-easycontrolx) — connect supported Windows and macOS hosts.
+- [Dreame & MOVA mowers](https://github.com/EvotecIT/homeassistant-dreamelawnmower) — Mowing controls, maps, schedules, and supported cameras.
+- [Lawn Mower Card](https://github.com/EvotecIT/lovelace-lawn-mower-card) — A dashboard for mower state, maps, and controls.
+- [KEF](https://github.com/EvotecIT/homeassistant-kef) — Local control for modern and legacy speaker families.
+- [Siegenia](https://github.com/EvotecIT/homeassistant-siegenia) — Local control for supported window controllers.
+- [EasyControlX](https://github.com/EvotecIT/homeassistant-easycontrolx) — Connect supported Windows and macOS hosts.
 
-Prefer a native app for everyday control? [CasaRay](https://casaray.dev/)
-brings rooms, devices, cameras, and home activity together on iPhone, iPad, and
-Mac. [Tactra Remote](https://tactra.dev/) puts media players, speakers, and TV
-controls in a focused remote for iPhone, iPad, Apple Watch, and Mac.
+For a native app connected to the same Home Assistant setup:
 
-Both connect to your Home Assistant setup. Neither is required to use this
-project.
+- [CasaRay](https://casaray.dev/) — rooms, devices, cameras, and home activity on
+  iPhone, iPad, and Mac.
+- [Tactra Remote](https://tactra.dev/) — media players, speakers, and TV controls
+  on iPhone, iPad, Apple Watch, and Mac.
 
-## 🎯 What This Is
+Neither app is required to use this project.
 
-This project is a custom Home Assistant integration for Devialet speakers that expose the local IP Control API.
-
-Today the strongest real-world validation is on:
-
-- Devialet Dione
-
-The goal is broader Devialet support over time, while keeping the integration stable and practical for everyday Home Assistant use.
-
-## ✨ What You Get
-
-- local discovery and config flow setup
-- media player controls
-- source selection
-- volume and mute
-- Dione features such as `night mode`, `rendering mode`, `LED mode`, working auto power-off controls, and Bluetooth pairing
-- useful diagnostics and stream metadata, registered but disabled by default when the data is mostly technical
-- capability details exposed on the media player for troubleshooting and model-specific support
-
-## 🏠 Installation
+## Installation
 
 ### HACS
 
-Click the button below to open this repository in HACS without guessing the owner, repository name, or category:
+[![Open this repository in HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=EvotecIT&repository=homeassistant-devialet&category=integration)
 
-[![Open your Home Assistant instance and open this repository inside HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=EvotecIT&repository=homeassistant-devialet&category=integration)
-
-After HACS installs the integration and Home Assistant has restarted, start setup here:
-
-[![Open your Home Assistant instance and start setting up Devialet.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=devialet)
-
-Manual HACS path:
-
-1. Open HACS.
-2. Add `https://github.com/EvotecIT/homeassistant-devialet` as a custom repository of type `Integration`.
-3. Install `Devialet`.
-4. Restart Home Assistant.
-5. Go to `Settings -> Devices & services` and add `Devialet`.
+1. Open the repository with the button above. Alternatively, in HACS choose
+   **Custom repositories**, add `https://github.com/EvotecIT/homeassistant-devialet`,
+   and select **Integration**.
+2. Download **Devialet** and restart Home Assistant.
+3. Open **Settings → Devices & services → Add integration**, then choose
+   **Devialet**.
 
 ### Manual
 
-1. Copy the `custom_components/devialet` folder into your Home Assistant `config/custom_components` directory.
+1. Download the repository and copy `custom_components/devialet` into your
+   Home Assistant `config/custom_components` directory.
 2. Restart Home Assistant.
-3. Add the integration from `Settings -> Devices & services`.
+3. Add **Devialet** from **Settings → Devices & services**.
 
-## ✅ Current Status
+## Configuration
 
-- best support today: Devialet Dione
-- local API confirmed against Dione firmware `2.20.1`
-- feature-aware refresh avoids querying Dione-only settings on models that do
-  not advertise them, while older devices without capability metadata retain
-  best-effort probing
-- temporary network/device outages mark entities unavailable and recover on a
-  later successful poll
-- test coverage runs on Python 3.13 and the current Python 3.14 Home Assistant
-  stack
-- structured so more Devialet models can be added as we confirm their local behavior
+Accept a discovered device or enter its host/IP address and local API port.
+The default port is **80**. Home Assistant must be able to reach the speaker
+on your local network.
 
-The current investigation notes are in `docs/devialet-dione-investigation.md`.
+Open the device page to find the media player and supported settings. Use
+**Configure** to adjust polling and optional setting sensors, or **Reconfigure**
+to update the network address.
 
-Feature tracking checklist: `docs/feature-checklist.md`
+## Documentation
 
-## 🧱 Reusable Python Package
+| I want to… | Guide |
+| --- | --- |
+| Check model support and limitations | [Device support](docs/device-support.md) |
+| Configure the device or troubleshoot connectivity | [Configuration](docs/configuration.md) |
+| Automate playback, volume, or settings | [Automations](docs/automations.md) |
+| Use Devialet from Python | [Python library](docs/python-library.md) |
+| Contribute or investigate a device | [Development](docs/development.md) · [Feature checklist](docs/feature-checklist.md) |
 
-This repository now ships two usable layers:
+## Screenshots
 
-- `devialet_client` for direct Python access to the local Devialet IP Control API
-- the Home Assistant integration in `custom_components/devialet`
+![Devialet integration overview](assets/devialet-overview.png)
 
-Library docs: `docs/python-library.md`
+## Support
 
-Runnable example: `examples/python_client.py`
-
-Example:
-
-```python
-from aiohttp import ClientSession
-from devialet_client import DevialetApiClient
-
-async with ClientSession() as session:
-    client = DevialetApiClient("192.168.1.10", session)
-    snapshot = await client.async_refresh()
-    print(snapshot.device.device_name)
-```
-
-That means the protocol layer is reusable outside Home Assistant for scripts, tooling, or future apps, while the integration stays focused on Home Assistant UX.
-
-## 🛣️ Roadmap
-
-- next tracked work lives in `docs/feature-checklist.md`
-- top priorities are the remaining Dione-only settings and broader non-Dione validation
-- broader model validation remains important beyond Dione
-
-## 🛠️ Development
-
-```bash
-python -m pip install -e .[test]
-ruff check .
-python -m compileall devialet_client custom_components tests examples
-pytest
-```
-
-Note:
-
-- the full Home Assistant pytest stack runs best in Linux CI
-- on Windows, `pytest-homeassistant-custom-component` imports `fcntl`, so complete local HA pytest runs are limited
-
-## ❤️ Support
-
-- Issues: [GitHub Issues](https://github.com/EvotecIT/homeassistant-devialet/issues)
-- Source: [GitHub Repository](https://github.com/EvotecIT/homeassistant-devialet)
+[Report an issue](https://github.com/EvotecIT/homeassistant-devialet/issues)
+with the model, firmware, integration version, and the action that failed.
+Download diagnostics and review attachments for personal information before
+posting. Include whether the same operation works in the vendor app.

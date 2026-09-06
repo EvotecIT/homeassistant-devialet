@@ -21,4 +21,4 @@ actions, and a reviewed diagnostics capture. Do not infer full compatibility
 from successful discovery alone.
 
 Contributor references: [Dione investigation](devialet-dione-investigation.md)
-and [feature checklist](feature-checklist.md).
+and [open work](feature-checklist.md).

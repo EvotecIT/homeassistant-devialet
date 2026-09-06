@@ -1,59 +1,29 @@
-# Devialet Feature Checklist
+# Open Devialet development work
 
-This checklist tracks what the repository already covers and what still needs work to reach a fuller Devialet integration.
+For available controls, use [configuration](configuration.md) and
+[device support](device-support.md). The reusable client, Home Assistant
+integration, LED and power-management controls, and Bluetooth pairing button
+are implemented.
 
-## Current Working Core
+## Device and protocol coverage
 
-- [x] Zeroconf discovery
-- [x] Config flow and options flow
-- [x] Single `media_player` entity with source selection
-- [x] Volume, mute, play, pause, stop, previous, next, and seek where exposed by the device
-- [x] Night mode switch
-- [x] Rendering mode select
-- [x] Stream and metadata read support in the reusable client
-- [x] Reusable `devialet_client` Python package
-- [x] HACS-ready packaging and first GitHub release
-- [x] Options flow compatibility with current Home Assistant
-- [x] Offline/unavailable state and recovery coverage
-- [x] Feature-aware refresh for models that advertise a smaller capability set
+- [ ] Validate additional Phantom and other Devialet families with sanitized
+  fixtures, especially devices advertising fewer features than Dione.
+- [ ] Verify request paths and payloads for `renderingModesPerSourceType`,
+  `orientation`, `roomCorrection`, and `explicitInstallationId`.
+- [ ] Determine whether `ledControl` needs a separate Home Assistant control
+  on devices that distinguish it from `ledMode`.
+- [ ] Investigate an event or push mechanism before replacing polling.
 
-## High-Priority Next
+The [Dione protocol notes](devialet-dione-investigation.md) retain observed
+endpoint and firmware evidence. An advertised feature name alone does not
+prove a writable API.
 
-- [x] Writable LED mode
-  - [x] expose `ledMode` as a writable Home Assistant entity
-  - [x] validate payloads on a real Dione
-  - [ ] decide whether `ledControl` should stay read-only or become a separate entity on other models
-- [x] Writable power management
-  - [x] confirm the real write enum for enabling auto power-off on Dione firmware `2.18.6`
-  - [x] expose auto power-off period
-  - [x] expose working enabled/disabled control
-- [x] Bluetooth pairing button or service
-  - [x] expose `startAdvertising` safely from Home Assistant
-  - [ ] add a user-facing description and warning text
+## Home Assistant usability
 
-## Feature Discovery / Reverse Engineering
+- [ ] Add clearer guidance for Bluetooth pairing's discoverability window.
+- [ ] Add repair guidance for unsupported or changed device endpoints when a
+  normal setup error does not explain recovery.
 
-- [ ] Confirm `renderingModesPerSourceType`
-- [ ] Confirm `orientation`
-- [ ] Confirm `roomCorrection`
-- [ ] Confirm `explicitInstallationId`
-- [ ] Capture additional official-app traffic while toggling those settings
-
-## Broader Device Coverage
-
-- [ ] Validate support against more Devialet models besides Dione
-- [x] Verify feature gating avoids Dione-only endpoints when capabilities are absent
-- [ ] Add fixtures from more than one Devialet family
-
-## Home Assistant Polish
-
-- [ ] Add more dedicated config entities once payloads are known
-- [x] Improve diagnostics to surface capability detection more explicitly
-- [ ] Add repair guidance for unsupported or changing device endpoints
-- [ ] Consider a button platform if Bluetooth pairing is exposed there
-
-## Nice-to-Have Later
-
-- [ ] Event-driven updates if Devialet exposes a usable push/event mechanism
-- [ ] Stronger model capability matrix
-- [ ] Separate fixture capture helpers for easier API regression testing
+Only add entities for verified capabilities. Factory reset and other destructive
+operations must not become ordinary dashboard buttons.

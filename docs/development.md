@@ -1,7 +1,7 @@
 # Development
 
 [Back to the README](../README.md) · [Python library](python-library.md) ·
-[Feature checklist](feature-checklist.md)
+[Open work](feature-checklist.md)
 
 ```bash
 python -m pip install -e .[test]

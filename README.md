@@ -84,7 +84,7 @@ to update the network address.
 | Configure the device or troubleshoot connectivity | [Configuration](docs/configuration.md) |
 | Automate playback, volume, or settings | [Automations](docs/automations.md) |
 | Use Devialet from Python | [Python library](docs/python-library.md) |
-| Contribute or investigate a device | [Development](docs/development.md) · [Feature checklist](docs/feature-checklist.md) |
+| Contribute or investigate a device | [Development](docs/development.md) · [Open work](docs/feature-checklist.md) |
 
 ## Screenshots
 

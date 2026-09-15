@@ -5,7 +5,12 @@ from __future__ import annotations
 from collections.abc import Callable
 from dataclasses import dataclass
 
-from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
+from homeassistant.components.sensor import (
+    SensorDeviceClass,
+    SensorEntity,
+    SensorEntityDescription,
+    SensorStateClass,
+)
 from homeassistant.const import EntityCategory, UnitOfFrequency, UnitOfTime
 
 from .const import (
@@ -28,6 +33,7 @@ SENSOR_DESCRIPTIONS: tuple[DevialetSensorDescription, ...] = (
     DevialetSensorDescription(
         key="source_type",
         name="Source type",
+        icon="mdi:audio-input-stereo-minijack",
         value_fn=lambda data: (
             source_label(data.source_state.source.type)
             if data.source_state and data.source_state.source
@@ -37,6 +43,7 @@ SENSOR_DESCRIPTIONS: tuple[DevialetSensorDescription, ...] = (
     DevialetSensorDescription(
         key="codec",
         name="Codec",
+        icon="mdi:file-music-outline",
         entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
         value_fn=lambda data: (
@@ -48,6 +55,7 @@ SENSOR_DESCRIPTIONS: tuple[DevialetSensorDescription, ...] = (
     DevialetSensorDescription(
         key="channels",
         name="Channels",
+        icon="mdi:surround-sound",
         entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
         value_fn=lambda data: (
@@ -59,6 +67,8 @@ SENSOR_DESCRIPTIONS: tuple[DevialetSensorDescription, ...] = (
     DevialetSensorDescription(
         key="sampling_rate",
         name="Sampling rate",
+        device_class=SensorDeviceClass.FREQUENCY,
+        state_class=SensorStateClass.MEASUREMENT,
         native_unit_of_measurement=UnitOfFrequency.HERTZ,
         entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
@@ -71,6 +81,7 @@ SENSOR_DESCRIPTIONS: tuple[DevialetSensorDescription, ...] = (
     DevialetSensorDescription(
         key="bit_depth",
         name="Bit depth",
+        icon="mdi:music-note-plus",
         entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
         value_fn=lambda data: (
@@ -82,16 +93,19 @@ SENSOR_DESCRIPTIONS: tuple[DevialetSensorDescription, ...] = (
     DevialetSensorDescription(
         key="led_mode",
         name="LED mode",
+        icon="mdi:led-strip-variant",
         value_fn=lambda data: data.led_mode.led_mode if data.led_mode else None,
     ),
     DevialetSensorDescription(
         key="led_control",
         name="LED control",
+        icon="mdi:led-on",
         value_fn=lambda data: data.led_mode.led_control if data.led_mode else None,
     ),
     DevialetSensorDescription(
         key="auto_power_off_mode",
         name="Auto power off mode",
+        icon="mdi:power-sleep",
         value_fn=lambda data: (
             data.power_management.auto_power_off if data.power_management else None
         ),
@@ -99,6 +113,8 @@ SENSOR_DESCRIPTIONS: tuple[DevialetSensorDescription, ...] = (
     DevialetSensorDescription(
         key="auto_power_off_period",
         name="Auto power off period",
+        device_class=SensorDeviceClass.DURATION,
+        state_class=SensorStateClass.MEASUREMENT,
         native_unit_of_measurement=UnitOfTime.MINUTES,
         value_fn=lambda data: (
             data.power_management.auto_power_off_period

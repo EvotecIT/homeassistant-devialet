@@ -7,6 +7,7 @@ from datetime import timedelta
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_PORT
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
@@ -31,7 +32,7 @@ class DevialetCoordinator(DataUpdateCoordinator[DevialetSnapshot]):
 
     config_entry: DevialetConfigEntry
 
-    def __init__(self, hass, entry: DevialetConfigEntry) -> None:
+    def __init__(self, hass: HomeAssistant, entry: DevialetConfigEntry) -> None:
         """Initialize the coordinator."""
         session = async_get_clientsession(hass)
         self.client = DevialetApiClient(

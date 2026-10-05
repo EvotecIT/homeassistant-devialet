@@ -4,11 +4,17 @@ from __future__ import annotations
 
 from homeassistant.components.number import NumberEntity
 from homeassistant.const import EntityCategory
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
+from .coordinator import DevialetConfigEntry, DevialetCoordinator
 from .entity import DevialetCoordinatorEntity
 
 
-async def async_setup_entry(hass, entry, async_add_entities) -> None:
+async def async_setup_entry(
+    hass: HomeAssistant, entry: DevialetConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+) -> None:
     """Set up Devialet number entities."""
     data = entry.runtime_data.data
     if (
@@ -29,7 +35,7 @@ class DevialetAutoPowerOffPeriodNumber(DevialetCoordinatorEntity, NumberEntity):
     _attr_native_max_value = 240
     _attr_native_step = 5
 
-    def __init__(self, coordinator) -> None:
+    def __init__(self, coordinator: DevialetCoordinator) -> None:
         """Initialize the number entity."""
         super().__init__(coordinator, "auto_power_off_period")
 

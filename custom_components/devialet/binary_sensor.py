@@ -10,7 +10,10 @@ from homeassistant.components.binary_sensor import (
     BinarySensorEntityDescription,
 )
 from homeassistant.const import EntityCategory
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
+from .coordinator import DevialetConfigEntry, DevialetCoordinator
 from .entity import DevialetCoordinatorEntity
 from .models import DevialetSnapshot
 
@@ -19,7 +22,7 @@ from .models import DevialetSnapshot
 class DevialetBinarySensorDescription(BinarySensorEntityDescription):
     """Description for Devialet binary sensors."""
 
-    value_fn: Callable[[DevialetSnapshot], object]
+    value_fn: Callable[[DevialetSnapshot], bool | None]
 
 
 BINARY_SENSOR_DESCRIPTIONS: tuple[DevialetBinarySensorDescription, ...] = (
@@ -46,7 +49,10 @@ BINARY_SENSOR_DESCRIPTIONS: tuple[DevialetBinarySensorDescription, ...] = (
 )
 
 
-async def async_setup_entry(hass, entry, async_add_entities) -> None:
+async def async_setup_entry(
+    hass: HomeAssistant, entry: DevialetConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+) -> None:
     """Set up Devialet binary sensors."""
     async_add_entities(
         DevialetBinarySensor(entry.runtime_data, description)
@@ -60,12 +66,12 @@ class DevialetBinarySensor(DevialetCoordinatorEntity, BinarySensorEntity):
     entity_description: DevialetBinarySensorDescription
 
     def __init__(
-        self, coordinator, description: DevialetBinarySensorDescription
+        self, coordinator: DevialetCoordinator,
+        description: DevialetBinarySensorDescription,
     ) -> None:
         """Initialize the entity."""
         super().__init__(coordinator, description.key)
         self.entity_description = description
-        self._attr_name = description.name
 
     @property
     def is_on(self) -> bool | None:

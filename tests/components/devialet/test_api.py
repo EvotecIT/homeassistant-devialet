@@ -311,3 +311,14 @@ async def test_request_json_reports_web_ui_shell_payload() -> None:
         str(exc_info.value)
         == "Devialet host returned the web UI shell instead of the IP Control JSON API"
     )
+
+
+@pytest.mark.parametrize("sources", [None, "hdmi", {"id": "hdmi"}])
+async def test_refresh_rejects_invalid_source_list(sources) -> None:
+    """Malformed source lists must use the client's response-error contract."""
+    client = DevialetApiClient(TEST_HOST, AsyncMock(spec=aiohttp.ClientSession))
+    client._request_json = AsyncMock(
+        side_effect=[DEVICE_PAYLOAD, SYSTEM_PAYLOAD, {"sources": sources}],
+    )
+    with pytest.raises(DevialetResponseError, match="sources payload"):
+        await client.async_refresh()

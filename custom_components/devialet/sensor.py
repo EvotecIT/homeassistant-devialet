@@ -12,12 +12,16 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.const import EntityCategory, UnitOfFrequency, UnitOfTime
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.typing import StateType
 
 from .const import (
     CONF_ENABLE_DEVICE_SETTINGS_SENSORS,
     DEFAULT_ENABLE_DEVICE_SETTINGS_SENSORS,
     source_label,
 )
+from .coordinator import DevialetConfigEntry, DevialetCoordinator
 from .entity import DevialetCoordinatorEntity
 from .models import DevialetSnapshot
 
@@ -26,7 +30,7 @@ from .models import DevialetSnapshot
 class DevialetSensorDescription(SensorEntityDescription):
     """Description for Devialet sensors."""
 
-    value_fn: Callable[[DevialetSnapshot], object]
+    value_fn: Callable[[DevialetSnapshot], StateType]
 
 
 SENSOR_DESCRIPTIONS: tuple[DevialetSensorDescription, ...] = (
@@ -125,7 +129,10 @@ SENSOR_DESCRIPTIONS: tuple[DevialetSensorDescription, ...] = (
 )
 
 
-async def async_setup_entry(hass, entry, async_add_entities) -> None:
+async def async_setup_entry(
+    hass: HomeAssistant, entry: DevialetConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+) -> None:
     """Set up Devialet sensors."""
     data = entry.runtime_data.data
     enable_device_settings_sensors = entry.options.get(
@@ -164,13 +171,15 @@ class DevialetSensor(DevialetCoordinatorEntity, SensorEntity):
 
     entity_description: DevialetSensorDescription
 
-    def __init__(self, coordinator, description: DevialetSensorDescription) -> None:
+    def __init__(
+        self, coordinator: DevialetCoordinator,
+        description: DevialetSensorDescription,
+    ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator, description.key)
         self.entity_description = description
-        self._attr_name = description.name
 
     @property
-    def native_value(self):
+    def native_value(self) -> StateType:
         """Return the sensor value."""
         return self.entity_description.value_fn(self.coordinator.data)

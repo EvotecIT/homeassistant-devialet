@@ -6,6 +6,7 @@
 ```bash
 python -m pip install -e .[test]
 ruff check .
+python -m mypy --strict custom_components/devialet
 python -m compileall devialet_client custom_components tests examples
 pytest
 ```
@@ -18,8 +19,9 @@ config entry or coordinator snapshot.
 
 For measured integration and bundled-client coverage, run
 `pytest --cov=custom_components.devialet --cov-report=term-missing`.
-Full config-flow coverage, above 95% integration-module coverage, strict typing,
-and artifact/device qualification remain open quality work.
+Strict mypy 2.4.0 checking covers all 21 production modules, including the bundled
+client. Full config-flow coverage, above 95% integration-module coverage, and
+artifact/device qualification remain open in the [rule ledger](quality.md).
 
 Note:
 
@@ -35,3 +37,9 @@ provides setup, entities, and automations. See the
 [Python library guide](python-library.md) and
 [runnable client example](../examples/python_client.py) instead of copying
 protocol calls into Home Assistant configuration.
+
+CI tests the declared HA 2025.1.0 minimum on Python 3.13 and HA 2026.9.4 stable on
+Python 3.14. Install `requirements-test-minimum.txt` to reproduce the minimum lane;
+its fixture requires compatible legacy josepy/pycares versions. Strict typing runs
+against current stable HA. Discovery annotations do not import the newer HA helper
+module at runtime, so the same production source loads on the declared minimum.

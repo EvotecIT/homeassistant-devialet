@@ -2,14 +2,17 @@
 
 from __future__ import annotations
 
-from homeassistant.components.media_player import (
-    MediaPlayerEntity,
+from homeassistant.components.media_player import MediaPlayerEntity
+from homeassistant.components.media_player.const import (
     MediaPlayerEntityFeature,
     MediaPlayerState,
+    MediaType,
 )
-from homeassistant.components.media_player.const import MediaType
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import build_source_option_map, source_label
+from .coordinator import DevialetConfigEntry, DevialetCoordinator
 from .entity import DevialetCoordinatorEntity
 
 BASE_FEATURES = (
@@ -29,7 +32,10 @@ OPERATION_FEATURE_MAP = {
 }
 
 
-async def async_setup_entry(hass, entry, async_add_entities) -> None:
+async def async_setup_entry(
+    hass: HomeAssistant, entry: DevialetConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+) -> None:
     """Set up the Devialet media player."""
     async_add_entities([DevialetMediaPlayer(entry.runtime_data)])
 
@@ -39,7 +45,7 @@ class DevialetMediaPlayer(DevialetCoordinatorEntity, MediaPlayerEntity):
 
     _attr_name = None
 
-    def __init__(self, coordinator) -> None:
+    def __init__(self, coordinator: DevialetCoordinator) -> None:
         """Initialize the media player."""
         super().__init__(coordinator, "media_player")
         self._attr_unique_id = (

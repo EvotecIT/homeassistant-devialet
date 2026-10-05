@@ -2,13 +2,17 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import voluptuous as vol
-from homeassistant.config_entries import ConfigFlow, OptionsFlow
+from homeassistant.config_entries import (
+    ConfigEntry,
+    ConfigFlow,
+    ConfigFlowResult,
+    OptionsFlow,
+)
 from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.helpers.service_info.zeroconf import ZeroconfServiceInfo
 
 from .api import DevialetApiClient
 from .const import (
@@ -25,6 +29,8 @@ from .const import (
 )
 from .exceptions import DevialetError
 
+if TYPE_CHECKING:
+    from homeassistant.helpers.service_info.zeroconf import ZeroconfServiceInfo
 
 class DevialetConfigFlow(ConfigFlow, domain=DOMAIN):
     """Handle a Devialet config flow."""
@@ -32,7 +38,7 @@ class DevialetConfigFlow(ConfigFlow, domain=DOMAIN):
     VERSION = 1
 
     @staticmethod
-    def async_get_options_flow(config_entry):
+    def async_get_options_flow(config_entry: ConfigEntry) -> DevialetOptionsFlow:
         """Return the options flow."""
         return DevialetOptionsFlow()
 
@@ -45,7 +51,9 @@ class DevialetConfigFlow(ConfigFlow, domain=DOMAIN):
         self._title = "Devialet"
         self._errors: dict[str, str] = {}
 
-    async def async_step_user(self, user_input: dict[str, Any] | None = None):
+    async def async_step_user(
+        self, user_input: dict[str, Any] | None = None,
+    ) -> ConfigFlowResult:
         """Handle manual setup."""
         self._errors = {}
 
@@ -68,7 +76,9 @@ class DevialetConfigFlow(ConfigFlow, domain=DOMAIN):
             errors=self._errors,
         )
 
-    async def async_step_reconfigure(self, user_input: dict[str, Any] | None = None):
+    async def async_step_reconfigure(
+        self, user_input: dict[str, Any] | None = None,
+    ) -> ConfigFlowResult:
         """Handle reconfiguration of an existing entry."""
         self._errors = {}
         entry = self._get_reconfigure_entry()
@@ -122,13 +132,15 @@ class DevialetConfigFlow(ConfigFlow, domain=DOMAIN):
             errors=self._errors,
         )
 
-    async def async_step_zeroconf(self, discovery_info: ZeroconfServiceInfo):
+    async def async_step_zeroconf(
+        self, discovery_info: ZeroconfServiceInfo,
+    ) -> ConfigFlowResult:
         """Handle zeroconf discovery."""
         properties = discovery_info.properties
         if properties.get("manufacturer") != "Devialet":
             return self.async_abort(reason="unsupported")
 
-        self._host = discovery_info.host
+        self._host = str(discovery_info.host)
         self._port = discovery_info.port or DEFAULT_PORT
         self._path = properties.get("path", DEFAULT_PATH)
         self._serial = properties.get("serialNumber")
@@ -147,7 +159,9 @@ class DevialetConfigFlow(ConfigFlow, domain=DOMAIN):
         self.context["title_placeholders"] = {"title": self._title}
         return await self.async_step_confirm()
 
-    async def async_step_confirm(self, user_input: dict[str, Any] | None = None):
+    async def async_step_confirm(
+        self, user_input: dict[str, Any] | None = None,
+    ) -> ConfigFlowResult:
         """Confirm a discovered device."""
         self._errors = {}
 
@@ -160,7 +174,7 @@ class DevialetConfigFlow(ConfigFlow, domain=DOMAIN):
             step_id="confirm", errors=self._errors, last_step=True
         )
 
-    async def _async_validate_and_create_entry(self):
+    async def _async_validate_and_create_entry(self) -> ConfigFlowResult | None:
         """Validate the device and create the config entry."""
         session = async_get_clientsession(self.hass)
         client = DevialetApiClient(
@@ -200,7 +214,9 @@ class DevialetConfigFlow(ConfigFlow, domain=DOMAIN):
 class DevialetOptionsFlow(OptionsFlow):
     """Handle Devialet options."""
 
-    async def async_step_init(self, user_input: dict[str, Any] | None = None):
+    async def async_step_init(
+        self, user_input: dict[str, Any] | None = None,
+    ) -> ConfigFlowResult:
         """Manage the integration options."""
         if user_input is not None:
             return self.async_create_entry(title="", data=user_input)

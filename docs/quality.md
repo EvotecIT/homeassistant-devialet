@@ -38,7 +38,7 @@ exemption needs the rule's permitted reason and product-specific evidence.
 
 | Rule | State | Evidence and next acceptance step |
 | --- | --- | --- |
-| action-exceptions | Partial | Transport failures surface as HA errors in test_init.py; cover invalid selections and optional endpoint failures. |
+| action-exceptions | Partial | Real HA actions verify HTTP method/path/payload mapping, unknown sources raise ServiceValidationError, and local HTTP tests distinguish unsupported endpoint fallback from server failures. Translation and remaining error-path qualification stay open. |
 | config-entry-unloading | Partial | Setup/unload tests exist; exercise failed unload, partial setup, and repeated reload resource ownership. |
 | docs-configuration-parameters | Partial | Configuration guide exists; reconcile all options, defaults, ranges, and effects. |
 | docs-installation-parameters | Partial | Configuration guide exists; reconcile setup fields, credentials, and network prerequisites. |
@@ -47,7 +47,7 @@ exemption needs the rule's permitted reason and product-specific evidence.
 | log-when-unavailable | Review | Exercise one disconnect/reconnect cycle and inspect logs for useful, non-repeating messages. |
 | parallel-updates | Partial | Writable platforms declare `PARALLEL_UPDATES = 1`; coordinator-only sensors declare zero. A real HA multi-entity switch action proves serialization. This is per platform/entry, not a global client lock; see the minimum-version limitation in the development guide. |
 | reauthentication-flow | Review | The local IP Control API has no credential field; verify applicability and document the permitted exemption. |
-| test-coverage | Gap | Integration/client statement coverage is 89.1% (896/1006); branch coverage is 55.3% (94/170). The flow has 100% statement and branch coverage. Above 95% module coverage remains a target. |
+| test-coverage | Gap | Integration/client statement coverage is 95.5% (965/1010); branch coverage is 79.4% (135/170). The flow has 100% statement and branch coverage. Above 95% module coverage remains a target. |
 
 ## Gold
 
@@ -80,12 +80,12 @@ exemption needs the rule's permitted reason and product-specific evidence.
 | Rule | State | Evidence and next acceptance step |
 | --- | --- | --- |
 | async-dependency | Partial | Bundled client uses async transports; inspect blocking calls, cancellation, and resource lifetime. |
-| inject-websession | Partial | Config flow uses HA's session; verify injection and ownership in every HTTP client creation path. |
+| inject-websession | Partial | Setup and flow use HA's shared session. Local HTTP tests preserve caller ownership and verify status/decompression overrides on borrowed sessions; remaining path and artifact qualification stays open. |
 | strict-typing | Partial | mypy 2.4.0 strict checking covers all 21 production modules including the bundled client; current-stable CI enforces the gate. Release-scoped qualification remains open. |
 
 ## Qualification beyond the rule ledger
 
-- [x] 63 tests pass on HA 2025.1.0 and HA 2026.9.4 with the same source.
+- [x] 95 tests pass on HA 2025.1.0 and HA 2026.9.4 with the same source.
 - [ ] Install the published artifact and upgrade from the previous stable release.
 - [ ] Verify real model/firmware behaviour, resource use, reconnection, and supported actions.
 - [ ] Record release version, commit, artifact identity, environment, and evidence date.

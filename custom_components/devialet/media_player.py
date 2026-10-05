@@ -9,6 +9,7 @@ from homeassistant.components.media_player.const import (
     MediaType,
 )
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import build_source_option_map, source_label
@@ -283,7 +284,7 @@ class DevialetMediaPlayer(DevialetCoordinatorEntity, MediaPlayerEntity):
                     source_id = item.source_id
                     break
         if source_id is None:
-            raise ValueError(f"Unknown Devialet source option: {source}")
+            raise ServiceValidationError(f"Unknown Devialet source option: {source}")
         await self._async_perform(
             self.coordinator.client.async_select_source(source_id)
         )

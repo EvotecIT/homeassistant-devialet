@@ -76,13 +76,21 @@ def build_source_option_map(
     source_types: Iterable[tuple[str, str]],
 ) -> dict[str, str]:
     """Build a stable label-to-source-id map for Home Assistant source selection."""
+    source_types = tuple(source_types)
     counts = Counter(source_type for source_type, _ in source_types)
+    prefix_counts = Counter(
+        (source_type, source_id[:8]) for source_type, source_id in source_types
+    )
     options: dict[str, str] = {}
 
     for source_type, source_id in source_types:
         label = source_label(source_type)
         if counts[source_type] > 1:
-            label = f"{label} ({source_id[:8]})"
+            suffix = (
+                source_id if prefix_counts[source_type, source_id[:8]] > 1
+                else source_id[:8]
+            )
+            label = f"{label} ({suffix})"
         options[label] = source_id
 
     return dict(sorted(options.items(), key=lambda item: item[0].lower()))

@@ -391,6 +391,7 @@ class DevialetApiClient:
         try:
             async with self._session.request(
                 method, url, allow_redirects=False,
+                raise_for_status=False, auto_decompress=True,
                 timeout=aiohttp.ClientTimeout(total=self._request_timeout),
                 json=(payload or {}) if method == "POST" else None,
                 params=payload if method != "POST" else None,

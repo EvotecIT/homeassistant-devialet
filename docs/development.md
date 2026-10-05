@@ -36,6 +36,19 @@ This does not serialize different platforms or coordinator polling. HA 2025.1
 bypasses its platform action semaphore for a single-entity service call; current
 HA applies it. The integration does not provide a separate global request lock.
 
+Action tests exercise real HA services through the HTTP request boundary for
+playback, volume, source selection, LED/rendering modes, night mode, power
+management, and Bluetooth pairing. Source options retain friendly names when
+built from an iterator. Same-type sources use full IDs when their abbreviated
+IDs collide, so every option remains selectable. Unknown sources raise HA's
+user-action validation error without sending a write.
+
+Local HTTP tests exercise shared sessions with automatic status raising or
+decompression disabled. The client selects its own request policy so optional
+endpoint fallback and JSON decoding remain consistent, while leaving the
+caller's session open. These tests use loopback servers; they do not establish
+physical-speaker behavior.
+
 Note:
 
 - the full Home Assistant pytest stack runs best in Linux CI

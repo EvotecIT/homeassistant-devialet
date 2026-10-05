@@ -43,38 +43,39 @@ from tests.conftest import (
 def _mock_refresh_endpoints(
     mocked,
     *,
+    base_url=TEST_BASE_URL,
     device_payload=DEVICE_PAYLOAD,
     system_payload=SYSTEM_PAYLOAD,
 ) -> None:
     """Register the API endpoints used by the coordinator."""
-    mocked.get(f"{TEST_BASE_URL}/devices/current", json=device_payload)
-    mocked.get(f"{TEST_BASE_URL}/systems/current", json=system_payload)
+    mocked.get(f"{base_url}/devices/current", json=device_payload)
+    mocked.get(f"{base_url}/systems/current", json=system_payload)
     mocked.get(
-        f"{TEST_BASE_URL}/groups/current/sources",
+        f"{base_url}/groups/current/sources",
         json=SOURCES_PAYLOAD,
     )
     mocked.get(
-        f"{TEST_BASE_URL}/groups/current/sources/current",
+        f"{base_url}/groups/current/sources/current",
         json=CURRENT_SOURCE_PAYLOAD,
     )
     mocked.get(
-        f"{TEST_BASE_URL}/groups/current/sources/current/soundControl/volume",
+        f"{base_url}/groups/current/sources/current/soundControl/volume",
         json=VOLUME_PAYLOAD,
     )
     mocked.get(
-        f"{TEST_BASE_URL}/systems/current/settings/audio/nightMode",
+        f"{base_url}/systems/current/settings/audio/nightMode",
         json=NIGHT_MODE_PAYLOAD,
     )
     mocked.get(
-        f"{TEST_BASE_URL}/systems/current/settings/audio/renderingMode",
+        f"{base_url}/systems/current/settings/audio/renderingMode",
         json=RENDERING_MODE_PAYLOAD,
     )
     mocked.get(
-        f"{TEST_BASE_URL}/systems/current/settings/ledMode",
+        f"{base_url}/systems/current/settings/ledMode",
         json=LED_MODE_PAYLOAD,
     )
     mocked.get(
-        f"{TEST_BASE_URL}/systems/current/settings/powerManagement",
+        f"{base_url}/systems/current/settings/powerManagement",
         json=POWER_MANAGEMENT_PAYLOAD,
     )
 

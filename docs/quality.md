@@ -17,7 +17,7 @@ exemption needs the rule's permitted reason and product-specific evidence.
 | appropriate-polling | Partial | Coordinator scan options exist; document and measure the request budget for all enabled endpoints. |
 | brands | Partial | Local `brand/` assets exist; verify rendered HACS/HA assets and applicable custom-integration requirements. |
 | common-modules | Partial | `entity.py`, `coordinator.py`, and `devialet_client/` own shared behaviour; inspect remaining adapter duplication. |
-| config-flow-test-coverage | Gap | `test_config_flow.py` exists; reach full measured flow coverage without excluding error paths. |
+| config-flow-test-coverage | Partial | All 94 executable flow statements and 20 branches are covered by public HA flow tests, including connection/identity failures, discovery, duplicate prevention, reconfiguration, and options. Release-scoped qualification remains open. |
 | config-flow | Partial | Manual and discovered setup exist; prove the installed artifact's UI flow. |
 | dependency-transparency | Review | Document bundled client ownership, transport, and requirements from the shipped manifest. |
 | docs-actions | Review | Reconcile platform actions and automation examples with supported device operations. |
@@ -45,9 +45,9 @@ exemption needs the rule's permitted reason and product-specific evidence.
 | entity-unavailable | Partial | Coordinator drives availability; verify offline startup, disconnect, recovery, and dependent entities. |
 | integration-owner | Partial | Manifest names maintainers and issue tracker; confirm support and security-reporting paths. |
 | log-when-unavailable | Review | Exercise one disconnect/reconnect cycle and inspect logs for useful, non-repeating messages. |
-| parallel-updates | Gap | Platform concurrency limits are not explicitly declared; select and test limits against client serialization. |
+| parallel-updates | Partial | Writable platforms declare `PARALLEL_UPDATES = 1`; coordinator-only sensors declare zero. A real HA multi-entity switch action proves serialization. This is per platform/entry, not a global client lock; see the minimum-version limitation in the development guide. |
 | reauthentication-flow | Review | The local IP Control API has no credential field; verify applicability and document the permitted exemption. |
-| test-coverage | Gap | Measured integration/client baseline is 84%; full flow coverage and above 95% module coverage remain targets. |
+| test-coverage | Gap | Integration/client statement coverage is 89.1% (896/1006); branch coverage is 55.3% (94/170). The flow has 100% statement and branch coverage. Above 95% module coverage remains a target. |
 
 ## Gold
 
@@ -85,7 +85,7 @@ exemption needs the rule's permitted reason and product-specific evidence.
 
 ## Qualification beyond the rule ledger
 
-- [x] 35 tests pass on HA 2025.1.0 and HA 2026.9.4 with the same source.
+- [x] 63 tests pass on HA 2025.1.0 and HA 2026.9.4 with the same source.
 - [ ] Install the published artifact and upgrade from the previous stable release.
 - [ ] Verify real model/firmware behaviour, resource use, reconnection, and supported actions.
 - [ ] Record release version, commit, artifact identity, environment, and evidence date.

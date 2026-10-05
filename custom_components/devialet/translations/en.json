@@ -27,6 +27,7 @@
       "unsupported": "This device does not expose the expected Devialet IP Control API."
     },
     "abort": {
+      "unsupported": "The discovered device does not advertise the Devialet IP Control API.",
       "already_configured": "This Devialet device is already configured.",
       "reconfigure_successful": "The Devialet integration was updated.",
       "wrong_device": "The selected device does not match the configured Devialet speaker."

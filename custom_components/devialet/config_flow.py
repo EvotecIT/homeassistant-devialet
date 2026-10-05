@@ -12,6 +12,7 @@ from homeassistant.config_entries import (
     OptionsFlow,
 )
 from homeassistant.const import CONF_HOST, CONF_PORT
+from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .api import DevialetApiClient
@@ -70,7 +71,7 @@ class DevialetConfigFlow(ConfigFlow, domain=DOMAIN):
             data_schema=vol.Schema(
                 {
                     vol.Required(CONF_HOST): str,
-                    vol.Optional(CONF_PORT, default=DEFAULT_PORT): int,
+                    vol.Optional(CONF_PORT, default=DEFAULT_PORT): cv.port,
                 }
             ),
             errors=self._errors,
@@ -126,7 +127,7 @@ class DevialetConfigFlow(ConfigFlow, domain=DOMAIN):
                     vol.Optional(
                         CONF_PORT,
                         default=entry.data.get(CONF_PORT, DEFAULT_PORT),
-                    ): int,
+                    ): cv.port,
                 }
             ),
             errors=self._errors,

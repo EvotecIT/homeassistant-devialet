@@ -17,6 +17,9 @@ from .coordinator import DevialetConfigEntry, DevialetCoordinator
 from .entity import DevialetCoordinatorEntity
 from .models import DevialetSnapshot
 
+# Coordinator reads are shared; HA limits actions per platform and entry.
+PARALLEL_UPDATES = 0
+
 
 @dataclass(frozen=True, kw_only=True)
 class DevialetBinarySensorDescription(BinarySensorEntityDescription):

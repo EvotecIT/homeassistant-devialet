@@ -20,8 +20,21 @@ config entry or coordinator snapshot.
 For measured integration and bundled-client coverage, run
 `pytest --cov=custom_components.devialet --cov-report=term-missing`.
 Strict mypy 2.4.0 checking covers all 21 production modules, including the bundled
-client. Full config-flow coverage, above 95% integration-module coverage, and
+client. Config-flow statement and branch coverage are both 100%. Above 95%
+integration-module coverage and
 artifact/device qualification remain open in the [rule ledger](quality.md).
+
+Network tests verify IPv4, DNS names, and IPv6 request URLs, including the device
+registry's configuration link. The reusable client owns URL formatting so the
+integration and standalone callers share the same behavior. Setup and
+reconfiguration forms reject out-of-range ports before network validation.
+
+Writable entity platforms use `PARALLEL_UPDATES = 1`; sensor and binary-sensor
+platforms use zero because the coordinator owns their reads. A multi-entity HA
+switch action verifies one active write at a time within that platform and entry.
+This does not serialize different platforms or coordinator polling. HA 2025.1
+bypasses its platform action semaphore for a single-entity service call; current
+HA applies it. The integration does not provide a separate global request lock.
 
 Note:
 

@@ -89,6 +89,14 @@ class DevialetApiClient:
         """Return the configured API path prefix."""
         return self._path
 
+    @property
+    def configuration_url(self) -> str:
+        """Return the device's HTTP origin, including IPv6 address brackets."""
+        host = self._host
+        if ":" in host and not host.startswith("["):
+            host = f"[{host}]"
+        return f"http://{host}:{self._port}"
+
     async def async_refresh(self) -> DevialetSnapshot:
         """Fetch a full snapshot of the current device state."""
         device = DevialetDeviceInfo.from_dict(
@@ -448,7 +456,7 @@ class DevialetApiClient:
     def _build_url(self, endpoint: str) -> str:
         """Build a full request URL."""
         endpoint = endpoint if endpoint.startswith("/") else f"/{endpoint}"
-        return f"http://{self._host}:{self._port}{self._path}{endpoint}"
+        return f"{self.configuration_url}{self._path}{endpoint}"
 
     @staticmethod
     def _looks_like_web_ui_shell(response_text: str, content_type: str) -> bool:

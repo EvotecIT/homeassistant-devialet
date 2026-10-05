@@ -15,6 +15,9 @@ from .const import build_source_option_map, source_label
 from .coordinator import DevialetConfigEntry, DevialetCoordinator
 from .entity import DevialetCoordinatorEntity
 
+# Coordinator reads are shared; HA limits actions per platform and entry.
+PARALLEL_UPDATES = 1
+
 BASE_FEATURES = (
     MediaPlayerEntityFeature.SELECT_SOURCE
     | MediaPlayerEntityFeature.TURN_OFF

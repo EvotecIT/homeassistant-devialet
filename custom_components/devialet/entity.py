@@ -46,9 +46,7 @@ class DevialetCoordinatorEntity(CoordinatorEntity[DevialetCoordinator]):
             or self.coordinator.config_entry.title,
             serial_number=device.serial,
             sw_version=device.release.version or device.release.canonical_version,
-            configuration_url=(
-                f"http://{self.coordinator.client.host}:{self.coordinator.client.port}"
-            ),
+            configuration_url=self.coordinator.client.configuration_url,
         )
 
     async def _async_perform(self, action: Awaitable[object]) -> None:

@@ -33,7 +33,6 @@ class DevialetAutoPowerOffPeriodNumber(DevialetCoordinatorEntity, NumberEntity):
 
     _attr_translation_key = "auto_power_off_period"
     _attr_entity_category = EntityCategory.CONFIG
-    _attr_icon = "mdi:timer-outline"
     _attr_native_min_value = 5
     _attr_native_max_value = 240
     _attr_native_step = 5

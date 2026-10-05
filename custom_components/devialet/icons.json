@@ -1,0 +1,66 @@
+{
+  "entity": {
+    "sensor": {
+      "source_type": {
+        "default": "mdi:audio-input-stereo-minijack"
+      },
+      "codec": {
+        "default": "mdi:file-music-outline"
+      },
+      "channels": {
+        "default": "mdi:surround-sound"
+      },
+      "bit_depth": {
+        "default": "mdi:music-note-plus"
+      },
+      "led_mode": {
+        "default": "mdi:led-strip-variant",
+        "state": {
+          "on": "mdi:led-on",
+          "off": "mdi:led-off"
+        }
+      },
+      "led_control": {
+        "default": "mdi:led-on"
+      },
+      "auto_power_off_mode": {
+        "default": "mdi:power-sleep"
+      }
+    },
+    "button": {
+      "bluetooth_pairing": {
+        "default": "mdi:bluetooth-connect"
+      }
+    },
+    "number": {
+      "auto_power_off_period": {
+        "default": "mdi:timer-outline"
+      }
+    },
+    "select": {
+      "led_mode": {
+        "default": "mdi:led-strip-variant",
+        "state": {
+          "on": "mdi:led-on",
+          "off": "mdi:led-off"
+        }
+      }
+    },
+    "switch": {
+      "auto_power_off": {
+        "default": "mdi:power-sleep",
+        "state": {
+          "off": "mdi:power-standby",
+          "on": "mdi:power-sleep"
+        }
+      },
+      "night_mode": {
+        "default": "mdi:weather-night",
+        "state": {
+          "off": "mdi:weather-sunny",
+          "on": "mdi:weather-night"
+        }
+      }
+    }
+  }
+}

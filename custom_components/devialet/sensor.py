@@ -40,7 +40,6 @@ SENSOR_DESCRIPTIONS: tuple[DevialetSensorDescription, ...] = (
     DevialetSensorDescription(
         key="source_type",
         translation_key="source_type",
-        icon="mdi:audio-input-stereo-minijack",
         value_fn=lambda data: (
             source_label(data.source_state.source.type)
             if data.source_state and data.source_state.source
@@ -50,7 +49,6 @@ SENSOR_DESCRIPTIONS: tuple[DevialetSensorDescription, ...] = (
     DevialetSensorDescription(
         key="codec",
         translation_key="codec",
-        icon="mdi:file-music-outline",
         entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
         value_fn=lambda data: (
@@ -62,7 +60,6 @@ SENSOR_DESCRIPTIONS: tuple[DevialetSensorDescription, ...] = (
     DevialetSensorDescription(
         key="channels",
         translation_key="channels",
-        icon="mdi:surround-sound",
         entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
         value_fn=lambda data: (
@@ -88,7 +85,6 @@ SENSOR_DESCRIPTIONS: tuple[DevialetSensorDescription, ...] = (
     DevialetSensorDescription(
         key="bit_depth",
         translation_key="bit_depth",
-        icon="mdi:music-note-plus",
         entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
         value_fn=lambda data: (
@@ -100,19 +96,16 @@ SENSOR_DESCRIPTIONS: tuple[DevialetSensorDescription, ...] = (
     DevialetSensorDescription(
         key="led_mode",
         translation_key="led_mode",
-        icon="mdi:led-strip-variant",
         value_fn=lambda data: data.led_mode.led_mode if data.led_mode else None,
     ),
     DevialetSensorDescription(
         key="led_control",
         translation_key="led_control",
-        icon="mdi:led-on",
         value_fn=lambda data: data.led_mode.led_control if data.led_mode else None,
     ),
     DevialetSensorDescription(
         key="auto_power_off_mode",
         translation_key="auto_power_off_mode",
-        icon="mdi:power-sleep",
         value_fn=lambda data: (
             data.power_management.auto_power_off if data.power_management else None
         ),

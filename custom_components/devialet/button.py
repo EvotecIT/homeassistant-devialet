@@ -31,7 +31,6 @@ class DevialetBluetoothPairingButton(DevialetCoordinatorEntity, ButtonEntity):
 
     _attr_translation_key = "bluetooth_pairing"
     _attr_entity_category = EntityCategory.CONFIG
-    _attr_icon = "mdi:bluetooth-connect"
 
     def __init__(self, coordinator: DevialetCoordinator) -> None:
         """Initialize the button."""

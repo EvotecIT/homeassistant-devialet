@@ -47,7 +47,7 @@ exemption needs the rule's permitted reason and product-specific evidence.
 | log-when-unavailable | Review | Exercise one disconnect/reconnect cycle and inspect logs for useful, non-repeating messages. |
 | parallel-updates | Partial | Writable platforms declare `PARALLEL_UPDATES = 1`; coordinator-only sensors declare zero. A real HA multi-entity switch action proves serialization. This is per platform/entry, not a global client lock; see the minimum-version limitation in the development guide. |
 | reauthentication-flow | Review | The local IP Control API has no credential field; verify applicability and document the permitted exemption. |
-| test-coverage | Gap | The measured baseline at 29391a9 has integration/client statement coverage of 95.5% (965/1010); branch coverage is 79.4% (135/170). The flow has 100% statement and branch coverage. Above 95% module coverage remains a target. |
+| test-coverage | Gap | The icon-resource candidate has integration/client statement coverage of 96.0% (970/1010); branch coverage is 82.4% (140/170). The flow has 100% statement and branch coverage. Above 95% module coverage remains a target. |
 
 ## Gold
 
@@ -70,7 +70,7 @@ exemption needs the rule's permitted reason and product-specific evidence.
 | entity-disabled-by-default | Partial | Diagnostic sensors and the device-settings option exist; verify useful defaults and user opt-in behaviour. |
 | entity-translations | Partial | All 17 child entities use HA translation keys with English and Polish names. Real HA tests verify translated names, English fallback, unchanged primary-device naming, and preservation of existing entity IDs and user overrides. Frontend and released-artifact qualification remain open. |
 | exception-translations | Partial | Action connection/rejection failures, unknown sources, and coordinator refresh failures use HA exception keys with English and Polish messages. Public HA service/coordinator tests verify metadata, placeholders, English fallback, and unavailable-state behavior. Raw client details remain in exception causes rather than displayed messages. Rendered frontend and installed-artifact proof remain open. |
-| icon-translations | Gap | Add applicable state-aware icon definitions and verify them against entity states. |
+| icon-translations | Partial | HA loads icon resources for all custom-icon entities, including on/off states for night mode, automatic power-off, and LED mode. Tests verify registered translation keys and actual entity states on minimum/current HA; the built wheel contains byte-identical icon and English/Polish translation resources. Rendered frontend and installed-artifact qualification remain open. |
 | reconfiguration-flow | Partial | Reconfigure step exists; verify identity checks, address changes, and retained settings. |
 | repair-issues | Review | Identify failures requiring user intervention and implement applicable repairs without log-only dead ends. |
 | stale-devices | Review | Audit the legacy media-player migration, registry removal, and single-entry ownership. |
@@ -85,7 +85,7 @@ exemption needs the rule's permitted reason and product-specific evidence.
 
 ## Qualification beyond the rule ledger
 
-- [x] 116 tests pass on HA 2025.1.0 and HA 2026.9.4 with the same source.
+- [x] 118 tests pass on HA 2025.1.0 and HA 2026.9.4 with the same source.
 - [ ] Install the published artifact and upgrade from the previous stable release.
 - [ ] Verify real model/firmware behaviour, resource use, reconnection, and supported actions.
 - [ ] Record release version, commit, artifact identity, environment, and evidence date.

@@ -10,6 +10,7 @@ from homeassistant.components.switch import DOMAIN as SWITCH_DOMAIN
 from homeassistant.const import ATTR_ENTITY_ID, SERVICE_TURN_ON
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers.icon import async_get_icons
 from homeassistant.helpers.translation import async_get_translations
 
 from custom_components.devialet.devialet_client.exceptions import (
@@ -91,7 +92,8 @@ async def test_setup_creates_expected_entities(
     assert hass.states.get("number.dione_auto_power_off_period").state == "90.0"
     assert hass.states.get("button.dione_start_bluetooth_pairing").state == "unknown"
     assert hass.states.get("sensor.dione_auto_power_off_period").state == "90"
-    assert hass.states.get("sensor.dione_source_type").attributes["icon"] == (
+    icons = await async_get_icons(hass, "entity", {"devialet"})
+    assert icons["devialet"]["sensor"]["source_type"]["default"] == (
         "mdi:audio-input-stereo-minijack"
     )
     auto_power_off_period = hass.states.get(

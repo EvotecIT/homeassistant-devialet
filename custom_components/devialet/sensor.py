@@ -39,7 +39,7 @@ class DevialetSensorDescription(SensorEntityDescription):
 SENSOR_DESCRIPTIONS: tuple[DevialetSensorDescription, ...] = (
     DevialetSensorDescription(
         key="source_type",
-        name="Source type",
+        translation_key="source_type",
         icon="mdi:audio-input-stereo-minijack",
         value_fn=lambda data: (
             source_label(data.source_state.source.type)
@@ -49,7 +49,7 @@ SENSOR_DESCRIPTIONS: tuple[DevialetSensorDescription, ...] = (
     ),
     DevialetSensorDescription(
         key="codec",
-        name="Codec",
+        translation_key="codec",
         icon="mdi:file-music-outline",
         entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
@@ -61,7 +61,7 @@ SENSOR_DESCRIPTIONS: tuple[DevialetSensorDescription, ...] = (
     ),
     DevialetSensorDescription(
         key="channels",
-        name="Channels",
+        translation_key="channels",
         icon="mdi:surround-sound",
         entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
@@ -73,7 +73,7 @@ SENSOR_DESCRIPTIONS: tuple[DevialetSensorDescription, ...] = (
     ),
     DevialetSensorDescription(
         key="sampling_rate",
-        name="Sampling rate",
+        translation_key="sampling_rate",
         device_class=SensorDeviceClass.FREQUENCY,
         state_class=SensorStateClass.MEASUREMENT,
         native_unit_of_measurement=UnitOfFrequency.HERTZ,
@@ -87,7 +87,7 @@ SENSOR_DESCRIPTIONS: tuple[DevialetSensorDescription, ...] = (
     ),
     DevialetSensorDescription(
         key="bit_depth",
-        name="Bit depth",
+        translation_key="bit_depth",
         icon="mdi:music-note-plus",
         entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
@@ -99,19 +99,19 @@ SENSOR_DESCRIPTIONS: tuple[DevialetSensorDescription, ...] = (
     ),
     DevialetSensorDescription(
         key="led_mode",
-        name="LED mode",
+        translation_key="led_mode",
         icon="mdi:led-strip-variant",
         value_fn=lambda data: data.led_mode.led_mode if data.led_mode else None,
     ),
     DevialetSensorDescription(
         key="led_control",
-        name="LED control",
+        translation_key="led_control",
         icon="mdi:led-on",
         value_fn=lambda data: data.led_mode.led_control if data.led_mode else None,
     ),
     DevialetSensorDescription(
         key="auto_power_off_mode",
-        name="Auto power off mode",
+        translation_key="auto_power_off_mode",
         icon="mdi:power-sleep",
         value_fn=lambda data: (
             data.power_management.auto_power_off if data.power_management else None
@@ -119,7 +119,7 @@ SENSOR_DESCRIPTIONS: tuple[DevialetSensorDescription, ...] = (
     ),
     DevialetSensorDescription(
         key="auto_power_off_period",
-        name="Auto power off period",
+        translation_key="auto_power_off_period",
         device_class=SensorDeviceClass.DURATION,
         state_class=SensorStateClass.MEASUREMENT,
         native_unit_of_measurement=UnitOfTime.MINUTES,

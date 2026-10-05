@@ -31,7 +31,7 @@ async def async_setup_entry(
 class DevialetAutoPowerOffPeriodNumber(DevialetCoordinatorEntity, NumberEntity):
     """Config number for the auto power-off period."""
 
-    _attr_name = "Auto power off period"
+    _attr_translation_key = "auto_power_off_period"
     _attr_entity_category = EntityCategory.CONFIG
     _attr_icon = "mdi:timer-outline"
     _attr_native_min_value = 5

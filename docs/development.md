@@ -49,6 +49,17 @@ endpoint fallback and JSON decoding remain consistent, while leaving the
 caller's session open. These tests use loopback servers; they do not establish
 physical-speaker behavior.
 
+Lifecycle tests use public HA entry operations to verify offline-startup retry,
+failed unload retaining its coordinator and borrowed session, retry after failed
+platform forwarding, and repeated reloads preserving registry identities while
+detaching old coordinators. HA 2025.1 retains the loaded state after a failed
+unload; current HA marks it failed. Both retain the integration owner.
+
+Entity names use HA translation keys with English and Polish labels. Host tests
+verify all 17 child entities, English fallback for an untranslated language,
+primary-device naming, and existing registry IDs and user names. These are
+backend host tests; frontend rendering remains part of artifact qualification.
+
 Note:
 
 - the full Home Assistant pytest stack runs best in Linux CI

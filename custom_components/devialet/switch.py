@@ -33,7 +33,7 @@ async def async_setup_entry(
 class DevialetNightModeSwitch(DevialetCoordinatorEntity, SwitchEntity):
     """Switch entity for night mode."""
 
-    _attr_name = "Night mode"
+    _attr_translation_key = "night_mode"
 
     def __init__(self, coordinator: DevialetCoordinator) -> None:
         """Initialize the switch."""
@@ -59,7 +59,7 @@ class DevialetNightModeSwitch(DevialetCoordinatorEntity, SwitchEntity):
 class DevialetAutoPowerOffSwitch(DevialetCoordinatorEntity, SwitchEntity):
     """Switch entity for automatic power off."""
 
-    _attr_name = "Auto power off"
+    _attr_translation_key = "auto_power_off"
     _attr_entity_category = EntityCategory.CONFIG
     _attr_icon = "mdi:power-sleep"
 

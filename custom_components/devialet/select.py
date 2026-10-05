@@ -31,7 +31,7 @@ async def async_setup_entry(
 class DevialetRenderingModeSelect(DevialetCoordinatorEntity, SelectEntity):
     """Select entity for rendering mode."""
 
-    _attr_name = "Rendering mode"
+    _attr_translation_key = "rendering_mode"
 
     def __init__(self, coordinator: DevialetCoordinator) -> None:
         """Initialize the select."""
@@ -63,7 +63,7 @@ class DevialetRenderingModeSelect(DevialetCoordinatorEntity, SelectEntity):
 class DevialetLedModeSelect(DevialetCoordinatorEntity, SelectEntity):
     """Select entity for LED mode."""
 
-    _attr_name = "LED mode"
+    _attr_translation_key = "led_mode"
     _attr_entity_category = EntityCategory.CONFIG
     _attr_icon = "mdi:led-strip-variant"
     _attr_options = ["auto", "on", "off"]

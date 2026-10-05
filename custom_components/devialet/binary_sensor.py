@@ -31,7 +31,7 @@ class DevialetBinarySensorDescription(BinarySensorEntityDescription):
 BINARY_SENSOR_DESCRIPTIONS: tuple[DevialetBinarySensorDescription, ...] = (
     DevialetBinarySensorDescription(
         key="stream_lock",
-        name="Stream lock",
+        translation_key="stream_lock",
         entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
         value_fn=lambda data: (
@@ -40,7 +40,7 @@ BINARY_SENSOR_DESCRIPTIONS: tuple[DevialetBinarySensorDescription, ...] = (
     ),
     DevialetBinarySensorDescription(
         key="lossless",
-        name="Lossless",
+        translation_key="lossless",
         entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
         value_fn=lambda data: (

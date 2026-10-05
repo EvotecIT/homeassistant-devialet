@@ -29,7 +29,7 @@ async def async_setup_entry(
 class DevialetBluetoothPairingButton(DevialetCoordinatorEntity, ButtonEntity):
     """Button entity for starting Bluetooth pairing."""
 
-    _attr_name = "Start Bluetooth pairing"
+    _attr_translation_key = "bluetooth_pairing"
     _attr_entity_category = EntityCategory.CONFIG
     _attr_icon = "mdi:bluetooth-connect"
 

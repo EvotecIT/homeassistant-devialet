@@ -26,12 +26,12 @@ exemption needs the rule's permitted reason and product-specific evidence.
 | docs-high-level-description | Partial | README describes speaker control; reconcile it with verified model support. |
 | docs-installation-instructions | Partial | README installation path exists; install the actual HACS artifact. |
 | docs-removal-instructions | Review | Verify entry removal and HACS uninstall guidance, including retained data. |
-| entity-event-setup | Partial | CoordinatorEntity owns subscriptions; verify repeated reload and partial-setup cleanup. |
+| entity-event-setup | Partial | Public HA tests verify repeated reloads keep entity IDs stable and detach old coordinators; platform-forwarding failure can retry with a fresh owner. Installed-host qualification remains open. |
 | entity-unique-id | Partial | Entity base supplies identity; verify uniqueness and persistence across migration/reconfiguration. |
 | has-entity-name | Partial | Entity base enables entity names; audit primary and child entity naming. |
-| runtime-data | Partial | Entry owns coordinator in `runtime_data`; verify partial-setup and unload ownership. |
+| runtime-data | Partial | Entry owns coordinator in `runtime_data`; tests verify offline startup publishes no runtime, failed unload retains its owner, and failed platform forwarding retries with a fresh owner. |
 | test-before-configure | Partial | Config flow validates the host; cover all supported transports and failure classes. |
-| test-before-setup | Partial | Setup refreshes the coordinator; verify retry/authentication failure behaviour. |
+| test-before-setup | Partial | Public HA tests verify offline setup enters retry state without creating entities, then reload succeeds after connection recovery. The local API has no configured authentication. |
 | unique-config-entry | Partial | Flow duplicate checks exist; test discovered/manual and changed-address combinations. |
 
 ## Silver
@@ -39,7 +39,7 @@ exemption needs the rule's permitted reason and product-specific evidence.
 | Rule | State | Evidence and next acceptance step |
 | --- | --- | --- |
 | action-exceptions | Partial | Real HA actions verify HTTP method/path/payload mapping, unknown sources raise ServiceValidationError, and local HTTP tests distinguish unsupported endpoint fallback from server failures. Translation and remaining error-path qualification stay open. |
-| config-entry-unloading | Partial | Setup/unload tests exist; exercise failed unload, partial setup, and repeated reload resource ownership. |
+| config-entry-unloading | Partial | Public HA tests cover successful unload, failed unload retaining runtime/session ownership, failed platform forwarding, and repeated reload without stale entity updates. Actual host reload qualification remains open. |
 | docs-configuration-parameters | Partial | Configuration guide exists; reconcile all options, defaults, ranges, and effects. |
 | docs-installation-parameters | Partial | Configuration guide exists; reconcile setup fields, credentials, and network prerequisites. |
 | entity-unavailable | Partial | Coordinator drives availability; verify offline startup, disconnect, recovery, and dependent entities. |
@@ -68,7 +68,7 @@ exemption needs the rule's permitted reason and product-specific evidence.
 | entity-category | Partial | Entity metadata exists; audit configuration and diagnostic categories across platforms. |
 | entity-device-class | Partial | Sensor metadata exists; audit classes, units, and state classes across models. |
 | entity-disabled-by-default | Partial | Diagnostic sensors and the device-settings option exist; verify useful defaults and user opt-in behaviour. |
-| entity-translations | Gap | Complete translated entity names and verify fallback behaviour in the HA host. |
+| entity-translations | Partial | All 17 child entities use HA translation keys with English and Polish names. Real HA tests verify translated names, English fallback, unchanged primary-device naming, and preservation of existing entity IDs and user overrides. Frontend and released-artifact qualification remain open. |
 | exception-translations | Review | Audit user-facing action exceptions and translation keys. |
 | icon-translations | Gap | Add applicable state-aware icon definitions and verify them against entity states. |
 | reconfiguration-flow | Partial | Reconfigure step exists; verify identity checks, address changes, and retained settings. |
@@ -85,7 +85,7 @@ exemption needs the rule's permitted reason and product-specific evidence.
 
 ## Qualification beyond the rule ledger
 
-- [x] 95 tests pass on HA 2025.1.0 and HA 2026.9.4 with the same source.
+- [x] 103 tests pass on HA 2025.1.0 and HA 2026.9.4 with the same source.
 - [ ] Install the published artifact and upgrade from the previous stable release.
 - [ ] Verify real model/firmware behaviour, resource use, reconnection, and supported actions.
 - [ ] Record release version, commit, artifact identity, environment, and evidence date.

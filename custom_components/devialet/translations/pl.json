@@ -1,0 +1,67 @@
+{
+  "entity": {
+    "sensor": {
+      "source_type": {
+        "name": "Typ źródła"
+      },
+      "codec": {
+        "name": "Kodek"
+      },
+      "channels": {
+        "name": "Kanały"
+      },
+      "sampling_rate": {
+        "name": "Częstotliwość próbkowania"
+      },
+      "bit_depth": {
+        "name": "Głębia bitowa"
+      },
+      "led_mode": {
+        "name": "Tryb diody LED"
+      },
+      "led_control": {
+        "name": "Sterowanie diodą LED"
+      },
+      "auto_power_off_mode": {
+        "name": "Tryb automatycznego wyłączania"
+      },
+      "auto_power_off_period": {
+        "name": "Czas do automatycznego wyłączenia"
+      }
+    },
+    "binary_sensor": {
+      "stream_lock": {
+        "name": "Synchronizacja strumienia"
+      },
+      "lossless": {
+        "name": "Bezstratny dźwięk"
+      }
+    },
+    "button": {
+      "bluetooth_pairing": {
+        "name": "Rozpocznij parowanie Bluetooth"
+      }
+    },
+    "select": {
+      "rendering_mode": {
+        "name": "Tryb odtwarzania"
+      },
+      "led_mode": {
+        "name": "Tryb diody LED"
+      }
+    },
+    "number": {
+      "auto_power_off_period": {
+        "name": "Czas do automatycznego wyłączenia"
+      }
+    },
+    "switch": {
+      "night_mode": {
+        "name": "Tryb nocny"
+      },
+      "auto_power_off": {
+        "name": "Automatyczne wyłączanie"
+      }
+    }
+  }
+}

@@ -10,7 +10,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN, MANUFACTURER
 from .coordinator import DevialetCoordinator
-from .exceptions import DevialetError
+from .exceptions import DevialetConnectionError, DevialetError
 
 
 class DevialetCoordinatorEntity(CoordinatorEntity[DevialetCoordinator]):
@@ -53,6 +53,14 @@ class DevialetCoordinatorEntity(CoordinatorEntity[DevialetCoordinator]):
         """Perform a device action and refresh the coordinator afterwards."""
         try:
             await action
+        except DevialetConnectionError as err:
+            raise HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key="device_unavailable",
+            ) from err
         except DevialetError as err:
-            raise HomeAssistantError(str(err)) from err
+            raise HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key="action_failed",
+            ) from err
         await self.coordinator.async_request_refresh()

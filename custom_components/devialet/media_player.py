@@ -12,7 +12,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import build_source_option_map, source_label
+from .const import DOMAIN, build_source_option_map, source_label
 from .coordinator import DevialetConfigEntry, DevialetCoordinator
 from .entity import DevialetCoordinatorEntity
 
@@ -284,7 +284,11 @@ class DevialetMediaPlayer(DevialetCoordinatorEntity, MediaPlayerEntity):
                     source_id = item.source_id
                     break
         if source_id is None:
-            raise ServiceValidationError(f"Unknown Devialet source option: {source}")
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="unknown_source",
+                translation_placeholders={"source": source},
+            )
         await self._async_perform(
             self.coordinator.client.async_select_source(source_id)
         )

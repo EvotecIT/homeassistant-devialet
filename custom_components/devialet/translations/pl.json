@@ -63,5 +63,19 @@
         "name": "Automatyczne wyłączanie"
       }
     }
+  },
+  "exceptions": {
+    "device_unavailable": {
+      "message": "Nie można połączyć się z głośnikiem Devialet. Sprawdź, czy jest włączony i połączony z siecią."
+    },
+    "action_failed": {
+      "message": "Głośnik Devialet nie mógł wykonać tej czynności. Spróbuj ponownie."
+    },
+    "unknown_source": {
+      "message": "Nieznane źródło Devialet: {source}"
+    },
+    "refresh_failed": {
+      "message": "Nie można odczytać stanu głośnika Devialet. Spróbuj ponownie."
+    }
   }
 }

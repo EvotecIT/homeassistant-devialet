@@ -4,6 +4,7 @@ from dataclasses import replace
 
 import pytest
 from homeassistant.exceptions import ServiceValidationError
+from homeassistant.helpers.translation import async_get_translations
 
 from custom_components.devialet.const import DEFAULT_PATH
 from tests.components.devialet.test_init import _mock_refresh_endpoints
@@ -221,21 +222,39 @@ async def test_same_type_sources_with_shared_prefix_remain_selectable(
         assert await hass.config_entries.async_unload(mock_config_entry.entry_id)
 
 
+@pytest.mark.parametrize("language", ["en", "pl", "fr"])
 async def test_unknown_source_is_a_user_action_error_without_network_write(
-    hass, mock_config_entry, aioclient_mock
+    hass, mock_config_entry, aioclient_mock, language
 ):
+    hass.config.language = language
     mock_config_entry.add_to_hass(hass)
     _mock_refresh_endpoints(aioclient_mock)
     assert await hass.config_entries.async_setup(mock_config_entry.entry_id)
     await hass.async_block_till_done()
     try:
-        with pytest.raises(ServiceValidationError, match="Unknown Devialet source"):
+        with pytest.raises(
+            ServiceValidationError, match="Unknown Devialet source"
+        ) as caught:
             await hass.services.async_call(
                 "media_player",
                 "select_source",
                 {"entity_id": "media_player.dione", "source": "Missing source"},
                 blocking=True,
             )
+        assert caught.value.translation_domain == "devialet"
+        assert caught.value.translation_key == "unknown_source"
+        assert caught.value.translation_placeholders == {"source": "Missing source"}
+        translations = await async_get_translations(
+            hass, language, "exceptions", {"devialet"}
+        )
+        message = translations[
+            "component.devialet.exceptions.unknown_source.message"
+        ].format(**caught.value.translation_placeholders)
+        assert message == (
+            "Nieznane źródło Devialet: Missing source"
+            if language == "pl"
+            else "Unknown Devialet source option: Missing source"
+        )
         assert not any(call[0] == "POST" for call in aioclient_mock.mock_calls)
     finally:
         assert await hass.config_entries.async_unload(mock_config_entry.entry_id)

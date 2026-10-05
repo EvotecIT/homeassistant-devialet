@@ -109,5 +109,19 @@
         "name": "Auto power off"
       }
     }
+  },
+  "exceptions": {
+    "device_unavailable": {
+      "message": "Cannot connect to the Devialet speaker. Check that it is powered on and connected to the network."
+    },
+    "action_failed": {
+      "message": "The Devialet speaker could not complete the action. Try again."
+    },
+    "unknown_source": {
+      "message": "Unknown Devialet source option: {source}"
+    },
+    "refresh_failed": {
+      "message": "Could not read the Devialet speaker state. Try again."
+    }
   }
 }

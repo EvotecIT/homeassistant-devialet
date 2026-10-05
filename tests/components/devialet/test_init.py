@@ -10,9 +10,11 @@ from homeassistant.components.switch import DOMAIN as SWITCH_DOMAIN
 from homeassistant.const import ATTR_ENTITY_ID, SERVICE_TURN_ON
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers.translation import async_get_translations
 
 from custom_components.devialet.devialet_client.exceptions import (
     DevialetConnectionError,
+    DevialetResponseError,
 )
 from tests.conftest import (
     CURRENT_SOURCE_PAYLOAD,
@@ -230,12 +232,36 @@ async def test_device_outage_marks_entities_unavailable_and_recovers(
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize("language", ["en", "pl", "fr"])
+@pytest.mark.parametrize(
+    ("failure", "key", "english", "polish"),
+    [
+        (
+            DevialetConnectionError("private connection detail"),
+            "device_unavailable",
+            "Cannot connect to the Devialet speaker.",
+            "Nie można połączyć się z głośnikiem Devialet.",
+        ),
+        (
+            DevialetResponseError("private vendor response", status=500),
+            "action_failed",
+            "The Devialet speaker could not complete the action.",
+            "Głośnik Devialet nie mógł wykonać tej czynności.",
+        ),
+    ],
+)
 async def test_device_action_surfaces_home_assistant_error(
     hass,
     mock_config_entry,
     aioclient_mock,
+    language,
+    failure,
+    key,
+    english,
+    polish,
 ) -> None:
     """Device connection failures should use Home Assistant's service error surface."""
+    hass.config.language = language
     mock_config_entry.add_to_hass(hass)
 
     _mock_refresh_endpoints(aioclient_mock)
@@ -243,15 +269,80 @@ async def test_device_action_surfaces_home_assistant_error(
     await hass.async_block_till_done()
 
     coordinator = mock_config_entry.runtime_data
+    entity_id = er.async_get(hass).async_get_entity_id(
+        "switch", "devialet", f"{coordinator.data.device.serial}_night_mode"
+    )
     with patch.object(
         coordinator.client,
         "async_set_night_mode",
-        AsyncMock(side_effect=DevialetConnectionError("Speaker is offline")),
+        AsyncMock(side_effect=failure),
     ):
-        with pytest.raises(HomeAssistantError, match="Speaker is offline"):
+        with pytest.raises(HomeAssistantError) as caught:
             await hass.services.async_call(
                 SWITCH_DOMAIN,
                 SERVICE_TURN_ON,
-                {ATTR_ENTITY_ID: "switch.dione_night_mode"},
+                {ATTR_ENTITY_ID: entity_id},
                 blocking=True,
             )
+    error = caught.value
+    assert error.translation_domain == "devialet"
+    assert error.translation_key == key
+    assert error.translation_placeholders is None
+    assert error.__cause__ is failure
+    assert str(error).startswith(english)
+    assert "private" not in str(error)
+    translations = await async_get_translations(
+        hass, language, "exceptions", {"devialet"}
+    )
+    assert translations[f"component.devialet.exceptions.{key}.message"].startswith(
+        polish if language == "pl" else english
+    )
+    assert await hass.config_entries.async_unload(mock_config_entry.entry_id)
+
+
+@pytest.mark.parametrize("language", ["en", "pl", "fr"])
+@pytest.mark.parametrize(
+    ("failure", "key", "english", "polish"),
+    [
+        (
+            DevialetConnectionError("private connection detail"),
+            "device_unavailable",
+            "Cannot connect to the Devialet speaker.",
+            "Nie można połączyć się z głośnikiem Devialet.",
+        ),
+        (
+            DevialetResponseError("private vendor payload", status=500),
+            "refresh_failed",
+            "Could not read the Devialet speaker state.",
+            "Nie można odczytać stanu głośnika Devialet.",
+        ),
+    ],
+)
+async def test_refresh_failure_retains_translation_and_unavailable_state(
+    hass, mock_config_entry, aioclient_mock, language, failure, key, english, polish,
+):
+    hass.config.language = language
+    mock_config_entry.add_to_hass(hass)
+    _mock_refresh_endpoints(aioclient_mock)
+    assert await hass.config_entries.async_setup(mock_config_entry.entry_id)
+    await hass.async_block_till_done()
+    coordinator = mock_config_entry.runtime_data
+    with patch.object(coordinator.client, "async_refresh", side_effect=failure):
+        await coordinator.async_refresh()
+        await hass.async_block_till_done()
+    error = coordinator.last_exception
+    assert isinstance(error, HomeAssistantError)
+    assert error.translation_domain == "devialet"
+    assert error.translation_key == key
+    assert str(error).startswith(english)
+    assert "private" not in str(error)
+    assert error.__cause__ is failure
+    assert not coordinator.last_update_success
+    assert hass.states.get("media_player.dione").state == "unavailable"
+    translations = await async_get_translations(
+        hass, language, "exceptions", {"devialet"}
+    )
+    assert translations[f"component.devialet.exceptions.{key}.message"].startswith(
+        polish if language == "pl" else english
+    )
+    assert await hass.config_entries.async_unload(mock_config_entry.entry_id)

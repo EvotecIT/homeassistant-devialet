@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from copy import deepcopy
 from unittest.mock import AsyncMock, patch
 
@@ -209,6 +210,7 @@ async def test_device_outage_marks_entities_unavailable_and_recovers(
     hass,
     mock_config_entry,
     aioclient_mock,
+    caplog,
 ) -> None:
     """A transient outage should not crash entities and recovery should be automatic."""
     mock_config_entry.add_to_hass(hass)
@@ -217,6 +219,8 @@ async def test_device_outage_marks_entities_unavailable_and_recovers(
     assert await hass.config_entries.async_setup(mock_config_entry.entry_id)
     await hass.async_block_till_done()
 
+    caplog.set_level(logging.INFO, logger="custom_components.devialet.coordinator")
+    caplog.clear()
     coordinator = mock_config_entry.runtime_data
     aioclient_mock.clear_requests()
     aioclient_mock.get(f"{TEST_BASE_URL}/devices/current", status=503)
@@ -224,6 +228,13 @@ async def test_device_outage_marks_entities_unavailable_and_recovers(
     await hass.async_block_till_done()
 
     assert hass.states.get("media_player.dione").state == "unavailable"
+    for _ in range(2):
+        await coordinator.async_refresh()
+    errors = [record for record in caplog.records
+              if record.name == "custom_components.devialet.coordinator"
+              and record.levelno >= logging.ERROR]
+    assert len(errors) == 1
+    assert "Error fetching devialet data" in errors[0].getMessage()
 
     aioclient_mock.clear_requests()
     _mock_refresh_endpoints(aioclient_mock)
@@ -231,6 +242,11 @@ async def test_device_outage_marks_entities_unavailable_and_recovers(
     await hass.async_block_till_done()
 
     assert hass.states.get("media_player.dione").state == "playing"
+    recovered = [record for record in caplog.records
+                 if record.name == "custom_components.devialet.coordinator"
+                 and "recovered" in record.getMessage()]
+    assert len(recovered) == 1
+    assert recovered[0].levelno == logging.INFO
 
 
 @pytest.mark.asyncio

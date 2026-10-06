@@ -13,13 +13,13 @@ exemption needs the rule's permitted reason and product-specific evidence.
 
 | Rule | State | Evidence and next acceptance step |
 | --- | --- | --- |
-| action-setup | Review | Entity actions use HA platforms; confirm whether custom action registration is applicable. |
+| action-setup | Exempt | No custom service actions are registered. The seven platforms expose standard HA entity actions; `__init__.py` only sets up and unloads platforms. This matches the [no-custom-actions exception](https://developers.home-assistant.io/docs/core/integration-quality-scale/rules/action-setup/#exceptions), checked 2026-10-07. |
 | appropriate-polling | Partial | Coordinator scan options exist; document and measure the request budget for all enabled endpoints. |
 | brands | Partial | Local `brand/` assets exist; verify rendered HACS/HA assets and applicable custom-integration requirements. |
 | common-modules | Partial | `entity.py`, `coordinator.py`, and `devialet_client/` own shared behaviour; inspect remaining adapter duplication. |
 | config-flow-test-coverage | Partial | All 94 executable flow statements and 20 branches are covered by public HA flow tests, including connection/identity failures, discovery, duplicate prevention, reconfiguration, and options. Release-scoped qualification remains open. |
 | config-flow | Partial | Manual and discovered setup exist; prove the installed artifact's UI flow. |
-| dependency-transparency | Review | Document bundled client ownership, transport, and requirements from the shipped manifest. |
+| dependency-transparency | Source verified | The configuration guide identifies the bundled canonical client, direct local HTTP transport, shared HA aiohttp session, and standalone wheel requirement. Checked against `manifest.json`, `pyproject.toml`, the public re-export package, and the bundled request implementation; no cloud authentication or external client package is required by HACS. |
 | docs-actions | Review | Reconcile platform actions and automation examples with supported device operations. |
 | docs-triggers | Review | Audit custom trigger support and document supported automation usage or applicability. |
 | docs-conditions | Review | Audit custom condition support and document supported automation usage or applicability. |
@@ -46,7 +46,7 @@ exemption needs the rule's permitted reason and product-specific evidence.
 | integration-owner | Partial | Manifest names maintainers and issue tracker; confirm support and security-reporting paths. |
 | log-when-unavailable | Review | Exercise one disconnect/reconnect cycle and inspect logs for useful, non-repeating messages. |
 | parallel-updates | Partial | Writable platforms declare `PARALLEL_UPDATES = 1`; coordinator-only sensors declare zero. A real HA multi-entity switch action proves serialization. This is per platform/entry, not a global client lock; see the minimum-version limitation in the development guide. |
-| reauthentication-flow | Review | The local IP Control API has no credential field; verify applicability and document the permitted exemption. |
+| reauthentication-flow | Exempt | Setup/reconfigure accept host and port, and the bundled IP Control client sends local HTTP requests without credentials, tokens, or an authentication exchange. This matches the [no-authentication exception](https://developers.home-assistant.io/docs/core/integration-quality-scale/rules/reauthentication-flow/#exceptions), checked 2026-10-07. Address changes use Reconfigure. |
 | test-coverage | Gap | The icon-resource candidate has integration/client statement coverage of 96.0% (970/1010); branch coverage is 82.4% (140/170). The flow has 100% statement and branch coverage. Above 95% module coverage remains a target. |
 
 ## Gold
@@ -64,7 +64,7 @@ exemption needs the rule's permitted reason and product-specific evidence.
 | docs-supported-functions | Partial | Feature checklist exists; reconcile platforms and per-model capability gating. |
 | docs-troubleshooting | Review | Cover connection, authentication, discovery, diagnostics, and recovery with actionable steps. |
 | docs-use-cases | Partial | Automation examples exist; verify complete user workflows. |
-| dynamic-devices | Review | Verify applicability for one local device/system per entry and document any permitted exemption. |
+| dynamic-devices | Exempt | Each entry owns one coordinator/client and one device identity. All platform entities use the shared entity device metadata; the client returns one device snapshot, not an enumerable child-device collection. This matches the [single-static-device exception](https://developers.home-assistant.io/docs/core/integration-quality-scale/rules/dynamic-devices/#exceptions), checked 2026-10-07. Separate discovered devices receive separate entries. |
 | entity-category | Partial | Entity metadata exists; audit configuration and diagnostic categories across platforms. |
 | entity-device-class | Partial | Sensor metadata exists; audit classes, units, and state classes across models. |
 | entity-disabled-by-default | Partial | Diagnostic sensors and the device-settings option exist; verify useful defaults and user opt-in behaviour. |

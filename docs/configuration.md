@@ -14,6 +14,22 @@ on the local network.
 Use **Reconfigure** if the address changes. Reconfiguration checks that the
 destination is the same Devialet device.
 
+## Connection and dependencies
+
+The integration talks directly to the device's local IP Control API over HTTP.
+It does not require a Devialet account, password, API token, or cloud service.
+Keep the device API reachable only on a trusted local network.
+
+The client implementation ships inside `custom_components/devialet/devialet_client`.
+The standalone `devialet_client` package re-exports that same implementation.
+Home Assistant supplies the shared `aiohttp` session; the HACS manifest does not
+install a separate client package. Installing the standalone Python wheel instead
+requires Python 3.13 or later and declares `aiohttp>=3.9` as its runtime dependency.
+
+Each configuration entry represents one device. Its controls use Home Assistant's
+standard media-player, switch, select, number, and button actions. There are no
+additional service actions registered under the `devialet` domain.
+
 ## Options
 
 Open the integration's **Configure** dialog.

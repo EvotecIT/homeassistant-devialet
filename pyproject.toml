@@ -26,7 +26,8 @@ test = [
 include = ["custom_components*", "devialet_client*"]
 
 [tool.setuptools.package-data]
-"custom_components.devialet" = ["manifest.json", "icons.json", "translations/*.json", "brand/*.png"]
+"devialet_client" = ["*.pyi", "py.typed"]
+"custom_components.devialet" = ["py.typed", "manifest.json", "icons.json", "translations/*.json", "brand/*.png"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

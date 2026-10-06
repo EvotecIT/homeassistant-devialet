@@ -56,3 +56,12 @@ jobs:
       - name: Strict typing against current stable HA
         if: matrix.homeassistant != '2025.1.0'
         run: python -m mypy --strict custom_components/devialet
+
+      - name: Installed standalone type contract
+        run: |
+          python -m pip wheel --no-deps . --wheel-dir "$RUNNER_TEMP/devialet-wheel"
+          python -m venv "$RUNNER_TEMP/devialet-consumer"
+          "$RUNNER_TEMP/devialet-consumer/bin/python" -m pip install "$RUNNER_TEMP"/devialet-wheel/*.whl
+          cp tests/typing/devialet_consumer.py "$RUNNER_TEMP/devialet_consumer.py"
+          cd "$RUNNER_TEMP"
+          python -m mypy --strict --python-executable "$RUNNER_TEMP/devialet-consumer/bin/python" devialet_consumer.py

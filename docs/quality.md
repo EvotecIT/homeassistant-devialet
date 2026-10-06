@@ -81,7 +81,7 @@ exemption needs the rule's permitted reason and product-specific evidence.
 | --- | --- | --- |
 | async-dependency | Partial | Bundled client uses async transports; inspect blocking calls, cancellation, and resource lifetime. |
 | inject-websession | Partial | Setup and flow use HA's shared session. Local HTTP tests preserve caller ownership and verify status/decompression overrides on borrowed sessions; remaining path and artifact qualification stays open. |
-| strict-typing | Partial | mypy 2.4.0 strict checking covers all 21 production modules including the bundled client; current-stable CI enforces the gate. Release-scoped qualification remains open. |
+| strict-typing | Partial | Strict mypy passes all 21 production modules. The standalone wheel includes PEP 561 markers and canonical type re-exports; isolated consumers pass on Python 3.13/3.14 and reject invalid arguments without Home Assistant installed. CI checks the installed contract in both lanes. Published-release qualification remains open. |
 
 ## Qualification beyond the rule ledger
 

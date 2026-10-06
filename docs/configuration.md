@@ -27,6 +27,23 @@ Some technical entities are registered but disabled by default. Enable them from
 the device's entity list only when useful. Creating an entity and enabling it on
 the dashboard are separate choices.
 
+## Data updates
+
+Home Assistant polls the device's local IP Control API; the integration does not
+subscribe to pushed state updates. The default interval is five seconds and can
+be changed to 3–60 seconds in **Configure**. Changes made on the speaker or in
+another app become visible after a successful poll, so the interval is not a
+guaranteed maximum delay when the device or network is slow.
+
+Each refresh reads device and system information, sources, the selected source,
+and volume. It also reads night mode, rendering mode, LED mode, and power
+management when the reported capabilities allow them. A refresh therefore makes
+several HTTP requests. Shorter intervals increase traffic to the speaker.
+
+Successful Home Assistant controls request a refresh. When a refresh fails,
+coordinator-backed entities become unavailable and recover after a successful
+update. Use the connection checks below before removing the integration.
+
 ## Daily controls
 
 Use the media player for the sources and playback operations the device exposes.

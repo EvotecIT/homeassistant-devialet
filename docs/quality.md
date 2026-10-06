@@ -57,7 +57,7 @@ exemption needs the rule's permitted reason and product-specific evidence.
 | diagnostics | Partial | Privacy and nonmutation tests pass; inspect the downloaded artifact and all supported model payloads. |
 | discovery-update-info | Partial | Zeroconf update handling exists; verify address changes preserve identity and credentials. |
 | discovery | Partial | Zeroconf manufacturer matching exists; test model matching and unrelated-device rejection. |
-| docs-data-update | Review | Describe polling, update intervals, unavailable states, and expected state delays. |
+| docs-data-update | Source verified | Configuration guide describes local polling, the 5-second default and 3–60-second range, multiple requests per refresh, action-triggered refreshes, state delays, and unavailable/recovery behavior; checked against coordinator, client, and entity action owners. |
 | docs-examples | Partial | Automation guide exists; validate examples against current entities/actions. |
 | docs-known-limitations | Partial | Device-support and Dione investigation notes exist; reconcile protocol and feature restrictions with evidence. |
 | docs-supported-devices | Partial | Device support guide exists; distinguish tested hardware from protocol-based expectations. |

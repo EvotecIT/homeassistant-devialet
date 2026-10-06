@@ -8,7 +8,7 @@ Accept a discovered Devialet device, or choose **Settings → Devices & services
 Add integration → Devialet** and enter its host/IP address.
 
 The default local API port is **80**. Change it only if your device exposes its
-IP Control API on another port. Home Assistant must be able to reach the device
+IP Control API on another port (valid range: 1–65535). Home Assistant must be able to reach the device
 on the local network.
 
 Use **Reconfigure** if the address changes. Reconfiguration checks that the
@@ -22,6 +22,11 @@ Open the integration's **Configure** dialog.
 | --- | --- |
 | Polling interval | 5 seconds; accepts 3–60 seconds |
 | Create LED and power-management sensor entities | Enabled by default; creates the optional setting sensors |
+
+Saving options reloads the integration. The optional-sensor setting controls
+creation of LED mode/control and automatic power-off mode/period sensors. It
+does not disable the corresponding controls or stop those settings from being
+read during a refresh.
 
 Some technical entities are registered but disabled by default. Enable them from
 the device's entity list only when useful. Creating an entity and enabling it on
@@ -52,6 +57,28 @@ actual options shown by your device rather than copying labels from another
 model.
 
 See [automations](automations.md) for volume and mute examples.
+
+## Remove the integration
+
+In **Settings → Devices & services**, open Devialet, find the device's integration
+entry, and choose **Delete** from its menu. Repeat for other configured Devialet
+entries if you are removing the integration entirely. This follows
+[Home Assistant's standard integration removal](https://www.home-assistant.io/common-tasks/general/#removing-an-integration-instance).
+
+Review automations, scripts, and dashboard cards that refer to the removed
+entities. Removing the entry does not rewrite those references or factory-reset
+the speaker. This integration uses the local API without a vendor account login,
+so there is no cloud authorization to revoke.
+
+To remove the downloaded integration code as well, remove all Devialet entries
+first, then remove the repository through HACS and restart Home Assistant. For a
+manual installation, remove only `custom_components/devialet` from the Home
+Assistant configuration directory and restart. Other custom integrations can
+share the parent `custom_components` directory.
+
+The integration does not create its own persistent cache files. Home Assistant
+manages configuration entries, entity history, and backups separately; removing
+the integration is not a request to purge recorder history or existing backups.
 
 ## Troubleshooting
 

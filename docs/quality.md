@@ -25,7 +25,7 @@ exemption needs the rule's permitted reason and product-specific evidence.
 | docs-conditions | Review | Audit custom condition support and document supported automation usage or applicability. |
 | docs-high-level-description | Partial | README describes speaker control; reconcile it with verified model support. |
 | docs-installation-instructions | Partial | README installation path exists; install the actual HACS artifact. |
-| docs-removal-instructions | Review | Verify entry removal and HACS uninstall guidance, including retained data. |
+| docs-removal-instructions | Source verified | Configuration guide covers entry deletion, affected automation/dashboard references, HACS/manual code removal, and retained HA history/backups. The local API needs no cloud authorization revocation; the integration has no private persistent cache. Installed-host removal remains a separate lifecycle qualification gate. |
 | entity-event-setup | Partial | Public HA tests verify repeated reloads keep entity IDs stable and detach old coordinators; platform-forwarding failure can retry with a fresh owner. Installed-host qualification remains open. |
 | entity-unique-id | Partial | Entity base supplies identity; verify uniqueness and persistence across migration/reconfiguration. |
 | has-entity-name | Partial | Entity base enables entity names; audit primary and child entity naming. |
@@ -40,8 +40,8 @@ exemption needs the rule's permitted reason and product-specific evidence.
 | --- | --- | --- |
 | action-exceptions | Partial | Real HA actions verify HTTP method/path/payload mapping, unknown sources raise ServiceValidationError, and local HTTP tests distinguish unsupported endpoint fallback from server failures. Action and refresh failures carry HA exception translation metadata; installed/frontend qualification stays open. |
 | config-entry-unloading | Partial | Public HA tests cover successful unload, failed unload retaining runtime/session ownership, failed platform forwarding, and repeated reload without stale entity updates. Actual host reload qualification remains open. |
-| docs-configuration-parameters | Partial | Configuration guide exists; reconcile all options, defaults, ranges, and effects. |
-| docs-installation-parameters | Partial | Configuration guide exists; reconcile setup fields, credentials, and network prerequisites. |
+| docs-configuration-parameters | Source verified | Guide documents both options, defaults, polling bounds, reload behavior, and which optional sensors are affected; checked against config_flow, constants, update listener, and sensor setup. |
+| docs-installation-parameters | Source verified | Guide documents host/address, local reachability, port default/range, discovery, and same-device reconfiguration; checked against the setup/reconfigure schemas. Local API configuration has no credentials or cloud account. |
 | entity-unavailable | Partial | Coordinator drives availability; verify offline startup, disconnect, recovery, and dependent entities. |
 | integration-owner | Partial | Manifest names maintainers and issue tracker; confirm support and security-reporting paths. |
 | log-when-unavailable | Review | Exercise one disconnect/reconnect cycle and inspect logs for useful, non-repeating messages. |

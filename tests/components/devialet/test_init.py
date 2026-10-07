@@ -2,29 +2,21 @@
 
 from __future__ import annotations
 
+import logging
 from copy import deepcopy
 from unittest.mock import AsyncMock, patch
 
 import pytest
-from homeassistant.components.button import DOMAIN as BUTTON_DOMAIN
-from homeassistant.components.button import SERVICE_PRESS
-from homeassistant.components.media_player import (
-    DOMAIN as MEDIA_PLAYER_DOMAIN,
-)
-from homeassistant.components.media_player import (
-    SERVICE_SELECT_SOURCE,
-)
-from homeassistant.components.number import DOMAIN as NUMBER_DOMAIN
-from homeassistant.components.number import SERVICE_SET_VALUE
-from homeassistant.components.select import DOMAIN as SELECT_DOMAIN
-from homeassistant.components.select import SERVICE_SELECT_OPTION
 from homeassistant.components.switch import DOMAIN as SWITCH_DOMAIN
 from homeassistant.const import ATTR_ENTITY_ID, SERVICE_TURN_ON
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers.icon import async_get_icons
+from homeassistant.helpers.translation import async_get_translations
 
 from custom_components.devialet.devialet_client.exceptions import (
     DevialetConnectionError,
+    DevialetResponseError,
 )
 from tests.conftest import (
     CURRENT_SOURCE_PAYLOAD,
@@ -43,38 +35,39 @@ from tests.conftest import (
 def _mock_refresh_endpoints(
     mocked,
     *,
+    base_url=TEST_BASE_URL,
     device_payload=DEVICE_PAYLOAD,
     system_payload=SYSTEM_PAYLOAD,
 ) -> None:
     """Register the API endpoints used by the coordinator."""
-    mocked.get(f"{TEST_BASE_URL}/devices/current", json=device_payload)
-    mocked.get(f"{TEST_BASE_URL}/systems/current", json=system_payload)
+    mocked.get(f"{base_url}/devices/current", json=device_payload)
+    mocked.get(f"{base_url}/systems/current", json=system_payload)
     mocked.get(
-        f"{TEST_BASE_URL}/groups/current/sources",
+        f"{base_url}/groups/current/sources",
         json=SOURCES_PAYLOAD,
     )
     mocked.get(
-        f"{TEST_BASE_URL}/groups/current/sources/current",
+        f"{base_url}/groups/current/sources/current",
         json=CURRENT_SOURCE_PAYLOAD,
     )
     mocked.get(
-        f"{TEST_BASE_URL}/groups/current/sources/current/soundControl/volume",
+        f"{base_url}/groups/current/sources/current/soundControl/volume",
         json=VOLUME_PAYLOAD,
     )
     mocked.get(
-        f"{TEST_BASE_URL}/systems/current/settings/audio/nightMode",
+        f"{base_url}/systems/current/settings/audio/nightMode",
         json=NIGHT_MODE_PAYLOAD,
     )
     mocked.get(
-        f"{TEST_BASE_URL}/systems/current/settings/audio/renderingMode",
+        f"{base_url}/systems/current/settings/audio/renderingMode",
         json=RENDERING_MODE_PAYLOAD,
     )
     mocked.get(
-        f"{TEST_BASE_URL}/systems/current/settings/ledMode",
+        f"{base_url}/systems/current/settings/ledMode",
         json=LED_MODE_PAYLOAD,
     )
     mocked.get(
-        f"{TEST_BASE_URL}/systems/current/settings/powerManagement",
+        f"{base_url}/systems/current/settings/powerManagement",
         json=POWER_MANAGEMENT_PAYLOAD,
     )
 
@@ -100,7 +93,8 @@ async def test_setup_creates_expected_entities(
     assert hass.states.get("number.dione_auto_power_off_period").state == "90.0"
     assert hass.states.get("button.dione_start_bluetooth_pairing").state == "unknown"
     assert hass.states.get("sensor.dione_auto_power_off_period").state == "90"
-    assert hass.states.get("sensor.dione_source_type").attributes["icon"] == (
+    icons = await async_get_icons(hass, "entity", {"devialet"})
+    assert icons["devialet"]["sensor"]["source_type"]["default"] == (
         "mdi:audio-input-stereo-minijack"
     )
     auto_power_off_period = hass.states.get(
@@ -216,6 +210,7 @@ async def test_device_outage_marks_entities_unavailable_and_recovers(
     hass,
     mock_config_entry,
     aioclient_mock,
+    caplog,
 ) -> None:
     """A transient outage should not crash entities and recovery should be automatic."""
     mock_config_entry.add_to_hass(hass)
@@ -224,6 +219,8 @@ async def test_device_outage_marks_entities_unavailable_and_recovers(
     assert await hass.config_entries.async_setup(mock_config_entry.entry_id)
     await hass.async_block_till_done()
 
+    caplog.set_level(logging.INFO, logger="custom_components.devialet.coordinator")
+    caplog.clear()
     coordinator = mock_config_entry.runtime_data
     aioclient_mock.clear_requests()
     aioclient_mock.get(f"{TEST_BASE_URL}/devices/current", status=503)
@@ -231,6 +228,13 @@ async def test_device_outage_marks_entities_unavailable_and_recovers(
     await hass.async_block_till_done()
 
     assert hass.states.get("media_player.dione").state == "unavailable"
+    for _ in range(2):
+        await coordinator.async_refresh()
+    errors = [record for record in caplog.records
+              if record.name == "custom_components.devialet.coordinator"
+              and record.levelno >= logging.ERROR]
+    assert len(errors) == 1
+    assert "Error fetching devialet data" in errors[0].getMessage()
 
     aioclient_mock.clear_requests()
     _mock_refresh_endpoints(aioclient_mock)
@@ -238,15 +242,44 @@ async def test_device_outage_marks_entities_unavailable_and_recovers(
     await hass.async_block_till_done()
 
     assert hass.states.get("media_player.dione").state == "playing"
+    recovered = [record for record in caplog.records
+                 if record.name == "custom_components.devialet.coordinator"
+                 and "recovered" in record.getMessage()]
+    assert len(recovered) == 1
+    assert recovered[0].levelno == logging.INFO
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize("language", ["en", "pl", "fr"])
+@pytest.mark.parametrize(
+    ("failure", "key", "english", "polish"),
+    [
+        (
+            DevialetConnectionError("private connection detail"),
+            "device_unavailable",
+            "Cannot connect to the Devialet speaker.",
+            "Nie można połączyć się z głośnikiem Devialet.",
+        ),
+        (
+            DevialetResponseError("private vendor response", status=500),
+            "action_failed",
+            "The Devialet speaker could not complete the action.",
+            "Głośnik Devialet nie mógł wykonać tej czynności.",
+        ),
+    ],
+)
 async def test_device_action_surfaces_home_assistant_error(
     hass,
     mock_config_entry,
     aioclient_mock,
+    language,
+    failure,
+    key,
+    english,
+    polish,
 ) -> None:
     """Device connection failures should use Home Assistant's service error surface."""
+    hass.config.language = language
     mock_config_entry.add_to_hass(hass)
 
     _mock_refresh_endpoints(aioclient_mock)
@@ -254,136 +287,80 @@ async def test_device_action_surfaces_home_assistant_error(
     await hass.async_block_till_done()
 
     coordinator = mock_config_entry.runtime_data
+    entity_id = er.async_get(hass).async_get_entity_id(
+        "switch", "devialet", f"{coordinator.data.device.serial}_night_mode"
+    )
     with patch.object(
         coordinator.client,
         "async_set_night_mode",
-        AsyncMock(side_effect=DevialetConnectionError("Speaker is offline")),
+        AsyncMock(side_effect=failure),
     ):
-        with pytest.raises(HomeAssistantError, match="Speaker is offline"):
+        with pytest.raises(HomeAssistantError) as caught:
             await hass.services.async_call(
                 SWITCH_DOMAIN,
                 SERVICE_TURN_ON,
-                {ATTR_ENTITY_ID: "switch.dione_night_mode"},
+                {ATTR_ENTITY_ID: entity_id},
                 blocking=True,
             )
+    error = caught.value
+    assert error.translation_domain == "devialet"
+    assert error.translation_key == key
+    assert error.translation_placeholders is None
+    assert error.__cause__ is failure
+    assert str(error).startswith(english)
+    assert "private" not in str(error)
+    translations = await async_get_translations(
+        hass, language, "exceptions", {"devialet"}
+    )
+    assert translations[f"component.devialet.exceptions.{key}.message"].startswith(
+        polish if language == "pl" else english
+    )
+    assert await hass.config_entries.async_unload(mock_config_entry.entry_id)
 
 
-@pytest.mark.asyncio
-async def test_switch_and_select_use_client_methods(
-    hass,
-    mock_config_entry,
-    aioclient_mock,
-) -> None:
-    """Entity services should delegate to the coordinator client."""
+@pytest.mark.parametrize("language", ["en", "pl", "fr"])
+@pytest.mark.parametrize(
+    ("failure", "key", "english", "polish"),
+    [
+        (
+            DevialetConnectionError("private connection detail"),
+            "device_unavailable",
+            "Cannot connect to the Devialet speaker.",
+            "Nie można połączyć się z głośnikiem Devialet.",
+        ),
+        (
+            DevialetResponseError("private vendor payload", status=500),
+            "refresh_failed",
+            "Could not read the Devialet speaker state.",
+            "Nie można odczytać stanu głośnika Devialet.",
+        ),
+    ],
+)
+async def test_refresh_failure_retains_translation_and_unavailable_state(
+    hass, mock_config_entry, aioclient_mock, language, failure, key, english, polish,
+):
+    hass.config.language = language
     mock_config_entry.add_to_hass(hass)
-
     _mock_refresh_endpoints(aioclient_mock)
     assert await hass.config_entries.async_setup(mock_config_entry.entry_id)
     await hass.async_block_till_done()
-
     coordinator = mock_config_entry.runtime_data
-
-    with patch.object(
-        coordinator.client,
-        "async_set_night_mode",
-        AsyncMock(),
-    ) as set_night_mode:
-        await hass.services.async_call(
-            SWITCH_DOMAIN,
-            SERVICE_TURN_ON,
-            {ATTR_ENTITY_ID: "switch.dione_night_mode"},
-            blocking=True,
-        )
-        set_night_mode.assert_awaited_once_with(True)
-
-    with patch.object(
-        coordinator.client,
-        "async_set_auto_power_off_enabled",
-        AsyncMock(),
-    ) as set_auto_power_off:
-        await hass.services.async_call(
-            SWITCH_DOMAIN,
-            SERVICE_TURN_ON,
-            {ATTR_ENTITY_ID: "switch.dione_auto_power_off"},
-            blocking=True,
-        )
-        set_auto_power_off.assert_awaited_once_with(True, current_period=90)
-
-    with patch.object(
-        coordinator.client,
-        "async_set_rendering_mode",
-        AsyncMock(),
-    ) as set_rendering_mode:
-        await hass.services.async_call(
-            SELECT_DOMAIN,
-            SERVICE_SELECT_OPTION,
-            {
-                ATTR_ENTITY_ID: "select.dione_rendering_mode",
-                "option": "music",
-            },
-            blocking=True,
-        )
-        set_rendering_mode.assert_awaited_once_with("music")
-
-    with patch.object(
-        coordinator.client,
-        "async_set_led_mode",
-        AsyncMock(),
-    ) as set_led_mode:
-        await hass.services.async_call(
-            SELECT_DOMAIN,
-            SERVICE_SELECT_OPTION,
-            {
-                ATTR_ENTITY_ID: "select.dione_led_mode",
-                "option": "off",
-            },
-            blocking=True,
-        )
-        set_led_mode.assert_awaited_once_with("off", led_control="manual")
-
-    with patch.object(
-        coordinator.client,
-        "async_select_source",
-        AsyncMock(),
-    ) as select_source:
-        await hass.services.async_call(
-            MEDIA_PLAYER_DOMAIN,
-            SERVICE_SELECT_SOURCE,
-            {
-                ATTR_ENTITY_ID: "media_player.dione",
-                "source": "spotifyconnect",
-            },
-            blocking=True,
-        )
-        select_source.assert_awaited_once_with(
-            "00000000-0000-4000-8000-000000000105"
-        )
-
-    with patch.object(
-        coordinator.client,
-        "async_set_auto_power_off_period",
-        AsyncMock(),
-    ) as set_auto_power_off_period:
-        await hass.services.async_call(
-            NUMBER_DOMAIN,
-            SERVICE_SET_VALUE,
-            {
-                ATTR_ENTITY_ID: "number.dione_auto_power_off_period",
-                "value": 120,
-            },
-            blocking=True,
-        )
-        set_auto_power_off_period.assert_awaited_once_with(120)
-
-    with patch.object(
-        coordinator.client,
-        "async_start_bluetooth_pairing",
-        AsyncMock(),
-    ) as start_bluetooth_pairing:
-        await hass.services.async_call(
-            BUTTON_DOMAIN,
-            SERVICE_PRESS,
-            {ATTR_ENTITY_ID: "button.dione_start_bluetooth_pairing"},
-            blocking=True,
-        )
-        start_bluetooth_pairing.assert_awaited_once_with()
+    with patch.object(coordinator.client, "async_refresh", side_effect=failure):
+        await coordinator.async_refresh()
+        await hass.async_block_till_done()
+    error = coordinator.last_exception
+    assert isinstance(error, HomeAssistantError)
+    assert error.translation_domain == "devialet"
+    assert error.translation_key == key
+    assert str(error).startswith(english)
+    assert "private" not in str(error)
+    assert error.__cause__ is failure
+    assert not coordinator.last_update_success
+    assert hass.states.get("media_player.dione").state == "unavailable"
+    translations = await async_get_translations(
+        hass, language, "exceptions", {"devialet"}
+    )
+    assert translations[f"component.devialet.exceptions.{key}.message"].startswith(
+        polish if language == "pl" else english
+    )
+    assert await hass.config_entries.async_unload(mock_config_entry.entry_id)

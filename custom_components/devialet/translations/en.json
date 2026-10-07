@@ -27,6 +27,7 @@
       "unsupported": "This device does not expose the expected Devialet IP Control API."
     },
     "abort": {
+      "unsupported": "The discovered device does not advertise the Devialet IP Control API.",
       "already_configured": "This Devialet device is already configured.",
       "reconfigure_successful": "The Devialet integration was updated.",
       "wrong_device": "The selected device does not match the configured Devialet speaker."
@@ -42,6 +43,85 @@
           "enable_device_settings_sensors": "Create LED and power-management sensor entities"
         }
       }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "source_type": {
+        "name": "Source type"
+      },
+      "codec": {
+        "name": "Codec"
+      },
+      "channels": {
+        "name": "Channels"
+      },
+      "sampling_rate": {
+        "name": "Sampling rate"
+      },
+      "bit_depth": {
+        "name": "Bit depth"
+      },
+      "led_mode": {
+        "name": "LED mode"
+      },
+      "led_control": {
+        "name": "LED control"
+      },
+      "auto_power_off_mode": {
+        "name": "Auto power off mode"
+      },
+      "auto_power_off_period": {
+        "name": "Auto power off period"
+      }
+    },
+    "binary_sensor": {
+      "stream_lock": {
+        "name": "Stream lock"
+      },
+      "lossless": {
+        "name": "Lossless"
+      }
+    },
+    "button": {
+      "bluetooth_pairing": {
+        "name": "Start Bluetooth pairing"
+      }
+    },
+    "select": {
+      "rendering_mode": {
+        "name": "Rendering mode"
+      },
+      "led_mode": {
+        "name": "LED mode"
+      }
+    },
+    "number": {
+      "auto_power_off_period": {
+        "name": "Auto power off period"
+      }
+    },
+    "switch": {
+      "night_mode": {
+        "name": "Night mode"
+      },
+      "auto_power_off": {
+        "name": "Auto power off"
+      }
+    }
+  },
+  "exceptions": {
+    "device_unavailable": {
+      "message": "Cannot connect to the Devialet speaker. Check that it is powered on and connected to the network."
+    },
+    "action_failed": {
+      "message": "The Devialet speaker could not complete the action. Try again."
+    },
+    "unknown_source": {
+      "message": "Unknown Devialet source option: {source}"
+    },
+    "refresh_failed": {
+      "message": "Could not read the Devialet speaker state. Try again."
     }
   }
 }

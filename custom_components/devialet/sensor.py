@@ -12,28 +12,34 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.const import EntityCategory, UnitOfFrequency, UnitOfTime
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.typing import StateType
 
 from .const import (
     CONF_ENABLE_DEVICE_SETTINGS_SENSORS,
     DEFAULT_ENABLE_DEVICE_SETTINGS_SENSORS,
     source_label,
 )
+from .coordinator import DevialetConfigEntry, DevialetCoordinator
 from .entity import DevialetCoordinatorEntity
 from .models import DevialetSnapshot
+
+# Coordinator reads are shared; HA limits actions per platform and entry.
+PARALLEL_UPDATES = 0
 
 
 @dataclass(frozen=True, kw_only=True)
 class DevialetSensorDescription(SensorEntityDescription):
     """Description for Devialet sensors."""
 
-    value_fn: Callable[[DevialetSnapshot], object]
+    value_fn: Callable[[DevialetSnapshot], StateType]
 
 
 SENSOR_DESCRIPTIONS: tuple[DevialetSensorDescription, ...] = (
     DevialetSensorDescription(
         key="source_type",
-        name="Source type",
-        icon="mdi:audio-input-stereo-minijack",
+        translation_key="source_type",
         value_fn=lambda data: (
             source_label(data.source_state.source.type)
             if data.source_state and data.source_state.source
@@ -42,8 +48,7 @@ SENSOR_DESCRIPTIONS: tuple[DevialetSensorDescription, ...] = (
     ),
     DevialetSensorDescription(
         key="codec",
-        name="Codec",
-        icon="mdi:file-music-outline",
+        translation_key="codec",
         entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
         value_fn=lambda data: (
@@ -54,8 +59,7 @@ SENSOR_DESCRIPTIONS: tuple[DevialetSensorDescription, ...] = (
     ),
     DevialetSensorDescription(
         key="channels",
-        name="Channels",
-        icon="mdi:surround-sound",
+        translation_key="channels",
         entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
         value_fn=lambda data: (
@@ -66,7 +70,7 @@ SENSOR_DESCRIPTIONS: tuple[DevialetSensorDescription, ...] = (
     ),
     DevialetSensorDescription(
         key="sampling_rate",
-        name="Sampling rate",
+        translation_key="sampling_rate",
         device_class=SensorDeviceClass.FREQUENCY,
         state_class=SensorStateClass.MEASUREMENT,
         native_unit_of_measurement=UnitOfFrequency.HERTZ,
@@ -80,8 +84,7 @@ SENSOR_DESCRIPTIONS: tuple[DevialetSensorDescription, ...] = (
     ),
     DevialetSensorDescription(
         key="bit_depth",
-        name="Bit depth",
-        icon="mdi:music-note-plus",
+        translation_key="bit_depth",
         entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
         value_fn=lambda data: (
@@ -92,27 +95,24 @@ SENSOR_DESCRIPTIONS: tuple[DevialetSensorDescription, ...] = (
     ),
     DevialetSensorDescription(
         key="led_mode",
-        name="LED mode",
-        icon="mdi:led-strip-variant",
+        translation_key="led_mode",
         value_fn=lambda data: data.led_mode.led_mode if data.led_mode else None,
     ),
     DevialetSensorDescription(
         key="led_control",
-        name="LED control",
-        icon="mdi:led-on",
+        translation_key="led_control",
         value_fn=lambda data: data.led_mode.led_control if data.led_mode else None,
     ),
     DevialetSensorDescription(
         key="auto_power_off_mode",
-        name="Auto power off mode",
-        icon="mdi:power-sleep",
+        translation_key="auto_power_off_mode",
         value_fn=lambda data: (
             data.power_management.auto_power_off if data.power_management else None
         ),
     ),
     DevialetSensorDescription(
         key="auto_power_off_period",
-        name="Auto power off period",
+        translation_key="auto_power_off_period",
         device_class=SensorDeviceClass.DURATION,
         state_class=SensorStateClass.MEASUREMENT,
         native_unit_of_measurement=UnitOfTime.MINUTES,
@@ -125,7 +125,10 @@ SENSOR_DESCRIPTIONS: tuple[DevialetSensorDescription, ...] = (
 )
 
 
-async def async_setup_entry(hass, entry, async_add_entities) -> None:
+async def async_setup_entry(
+    hass: HomeAssistant, entry: DevialetConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+) -> None:
     """Set up Devialet sensors."""
     data = entry.runtime_data.data
     enable_device_settings_sensors = entry.options.get(
@@ -164,13 +167,15 @@ class DevialetSensor(DevialetCoordinatorEntity, SensorEntity):
 
     entity_description: DevialetSensorDescription
 
-    def __init__(self, coordinator, description: DevialetSensorDescription) -> None:
+    def __init__(
+        self, coordinator: DevialetCoordinator,
+        description: DevialetSensorDescription,
+    ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator, description.key)
         self.entity_description = description
-        self._attr_name = description.name
 
     @property
-    def native_value(self):
+    def native_value(self) -> StateType:
         """Return the sensor value."""
         return self.entity_description.value_fn(self.coordinator.data)

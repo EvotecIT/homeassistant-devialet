@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from ipaddress import ip_address
+from types import SimpleNamespace
+
 import pytest
 from homeassistant import config_entries
 from homeassistant.const import CONF_HOST, CONF_PORT
@@ -117,3 +120,28 @@ async def test_options_flow_saves_settings(hass) -> None:
         CONF_SCAN_INTERVAL: 30,
         CONF_ENABLE_DEVICE_SETTINGS_SENSORS: False,
     }
+
+
+async def test_discovery_updates_host_as_serializable_text(hass) -> None:
+    """HA address objects must not be persisted into config-entry JSON."""
+    entry = MockConfigEntry(
+        domain=DOMAIN, unique_id=DEVICE_PAYLOAD["serial"],
+        data={CONF_HOST: "192.0.2.99", CONF_PORT: TEST_PORT, CONF_PATH: DEFAULT_PATH},
+        title="Dione",
+    )
+    entry.add_to_hass(hass)
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_ZEROCONF},
+        data=SimpleNamespace(
+            host=ip_address(TEST_HOST), port=TEST_PORT,
+            properties={
+                "manufacturer": "Devialet", "serialNumber": DEVICE_PAYLOAD["serial"],
+            },
+            name="Dione._http._tcp.local.", type="_http._tcp.local.",
+        ),
+    )
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "already_configured"
+    assert entry.data[CONF_HOST] == TEST_HOST
+    assert isinstance(entry.data[CONF_HOST], str)
+    assert entry.unique_id == DEVICE_PAYLOAD["serial"]

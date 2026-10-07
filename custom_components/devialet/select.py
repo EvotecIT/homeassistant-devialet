@@ -4,11 +4,20 @@ from __future__ import annotations
 
 from homeassistant.components.select import SelectEntity
 from homeassistant.const import EntityCategory
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
+from .coordinator import DevialetConfigEntry, DevialetCoordinator
 from .entity import DevialetCoordinatorEntity
 
+# Coordinator reads are shared; HA limits actions per platform and entry.
+PARALLEL_UPDATES = 1
 
-async def async_setup_entry(hass, entry, async_add_entities) -> None:
+
+async def async_setup_entry(
+    hass: HomeAssistant, entry: DevialetConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+) -> None:
     """Set up Devialet selects."""
     entities: list[SelectEntity] = []
     data = entry.runtime_data.data
@@ -22,9 +31,9 @@ async def async_setup_entry(hass, entry, async_add_entities) -> None:
 class DevialetRenderingModeSelect(DevialetCoordinatorEntity, SelectEntity):
     """Select entity for rendering mode."""
 
-    _attr_name = "Rendering mode"
+    _attr_translation_key = "rendering_mode"
 
-    def __init__(self, coordinator) -> None:
+    def __init__(self, coordinator: DevialetCoordinator) -> None:
         """Initialize the select."""
         super().__init__(coordinator, "rendering_mode")
 
@@ -54,12 +63,11 @@ class DevialetRenderingModeSelect(DevialetCoordinatorEntity, SelectEntity):
 class DevialetLedModeSelect(DevialetCoordinatorEntity, SelectEntity):
     """Select entity for LED mode."""
 
-    _attr_name = "LED mode"
+    _attr_translation_key = "led_mode"
     _attr_entity_category = EntityCategory.CONFIG
-    _attr_icon = "mdi:led-strip-variant"
     _attr_options = ["auto", "on", "off"]
 
-    def __init__(self, coordinator) -> None:
+    def __init__(self, coordinator: DevialetCoordinator) -> None:
         """Initialize the select."""
         super().__init__(coordinator, "led_mode_select")
 

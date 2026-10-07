@@ -24,7 +24,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.13", "3.14"]
+        include:
+          - python-version: "3.13"
+            homeassistant: "2025.1.0"
+          - python-version: "3.14"
+            homeassistant: "2026.9.4"
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -37,10 +41,27 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -e .[test]
+          if [ "${{ matrix.homeassistant }}" = "2025.1.0" ]; then
+            python -m pip install -r requirements-test-minimum.txt
+          else
+            python -m pip install -e .[test] "homeassistant==2026.9.4" "pytest-homeassistant-custom-component==0.13.367"
+          fi
 
       - name: Ruff
         run: ruff check .
 
       - name: Pytest
         run: pytest
+
+      - name: Strict typing against current stable HA
+        if: matrix.homeassistant != '2025.1.0'
+        run: python -m mypy --strict custom_components/devialet
+
+      - name: Installed standalone type contract
+        run: |
+          python -m pip wheel --no-deps . --wheel-dir "$RUNNER_TEMP/devialet-wheel"
+          python -m venv "$RUNNER_TEMP/devialet-consumer"
+          "$RUNNER_TEMP/devialet-consumer/bin/python" -m pip install "$RUNNER_TEMP"/devialet-wheel/*.whl
+          cp tests/typing/devialet_consumer.py "$RUNNER_TEMP/devialet_consumer.py"
+          cd "$RUNNER_TEMP"
+          python -m mypy --strict --python-executable "$RUNNER_TEMP/devialet-consumer/bin/python" devialet_consumer.py

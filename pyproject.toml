@@ -17,15 +17,17 @@ test = [
   "pytest>=8.3.0",
   "pytest-asyncio>=0.24.0",
   "pytest-cov>=6.0.0",
-  "pytest-homeassistant-custom-component>=0.13.218",
-  "ruff>=0.11.0"
+  "pytest-homeassistant-custom-component>=0.13.201",
+  "ruff>=0.11.0",
+  "mypy==2.4.0"
 ]
 
 [tool.setuptools.packages.find]
 include = ["custom_components*", "devialet_client*"]
 
 [tool.setuptools.package-data]
-"custom_components.devialet" = ["manifest.json", "translations/*.json", "brand/*.png"]
+"devialet_client" = ["*.pyi", "py.typed"]
+"custom_components.devialet" = ["py.typed", "manifest.json", "icons.json", "translations/*.json", "brand/*.png"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
@@ -39,3 +41,7 @@ exclude = [".codex_tmp"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP"]
+
+[tool.mypy]
+strict = true
+files = ["custom_components/devialet"]

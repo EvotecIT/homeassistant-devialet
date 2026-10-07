@@ -4,11 +4,20 @@ from __future__ import annotations
 
 from homeassistant.components.button import ButtonEntity
 from homeassistant.const import EntityCategory
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
+from .coordinator import DevialetConfigEntry, DevialetCoordinator
 from .entity import DevialetCoordinatorEntity
 
+# Coordinator reads are shared; HA limits actions per platform and entry.
+PARALLEL_UPDATES = 1
 
-async def async_setup_entry(hass, entry, async_add_entities) -> None:
+
+async def async_setup_entry(
+    hass: HomeAssistant, entry: DevialetConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+) -> None:
     """Set up Devialet buttons."""
     if not any(
         source.type == "bluetooth" for source in entry.runtime_data.data.sources
@@ -20,11 +29,10 @@ async def async_setup_entry(hass, entry, async_add_entities) -> None:
 class DevialetBluetoothPairingButton(DevialetCoordinatorEntity, ButtonEntity):
     """Button entity for starting Bluetooth pairing."""
 
-    _attr_name = "Start Bluetooth pairing"
+    _attr_translation_key = "bluetooth_pairing"
     _attr_entity_category = EntityCategory.CONFIG
-    _attr_icon = "mdi:bluetooth-connect"
 
-    def __init__(self, coordinator) -> None:
+    def __init__(self, coordinator: DevialetCoordinator) -> None:
         """Initialize the button."""
         super().__init__(coordinator, "bluetooth_pairing")
 

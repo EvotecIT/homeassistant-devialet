@@ -2,13 +2,24 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.const import EntityCategory
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
+from .coordinator import DevialetConfigEntry, DevialetCoordinator
 from .entity import DevialetCoordinatorEntity
 
+# Coordinator reads are shared; HA limits actions per platform and entry.
+PARALLEL_UPDATES = 1
 
-async def async_setup_entry(hass, entry, async_add_entities) -> None:
+
+async def async_setup_entry(
+    hass: HomeAssistant, entry: DevialetConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+) -> None:
     """Set up Devialet switches."""
     entities: list[SwitchEntity] = []
     data = entry.runtime_data.data
@@ -22,9 +33,9 @@ async def async_setup_entry(hass, entry, async_add_entities) -> None:
 class DevialetNightModeSwitch(DevialetCoordinatorEntity, SwitchEntity):
     """Switch entity for night mode."""
 
-    _attr_name = "Night mode"
+    _attr_translation_key = "night_mode"
 
-    def __init__(self, coordinator) -> None:
+    def __init__(self, coordinator: DevialetCoordinator) -> None:
         """Initialize the switch."""
         super().__init__(coordinator, "night_mode")
 
@@ -36,11 +47,11 @@ class DevialetNightModeSwitch(DevialetCoordinatorEntity, SwitchEntity):
             return None
         return night_mode.night_mode
 
-    async def async_turn_on(self, **kwargs) -> None:
+    async def async_turn_on(self, **kwargs: Any) -> None:
         """Enable night mode."""
         await self._async_perform(self.coordinator.client.async_set_night_mode(True))
 
-    async def async_turn_off(self, **kwargs) -> None:
+    async def async_turn_off(self, **kwargs: Any) -> None:
         """Disable night mode."""
         await self._async_perform(self.coordinator.client.async_set_night_mode(False))
 
@@ -48,11 +59,10 @@ class DevialetNightModeSwitch(DevialetCoordinatorEntity, SwitchEntity):
 class DevialetAutoPowerOffSwitch(DevialetCoordinatorEntity, SwitchEntity):
     """Switch entity for automatic power off."""
 
-    _attr_name = "Auto power off"
+    _attr_translation_key = "auto_power_off"
     _attr_entity_category = EntityCategory.CONFIG
-    _attr_icon = "mdi:power-sleep"
 
-    def __init__(self, coordinator) -> None:
+    def __init__(self, coordinator: DevialetCoordinator) -> None:
         """Initialize the switch."""
         super().__init__(coordinator, "auto_power_off")
 
@@ -64,7 +74,7 @@ class DevialetAutoPowerOffSwitch(DevialetCoordinatorEntity, SwitchEntity):
             return None
         return power_management.auto_power_off == "always"
 
-    async def async_turn_on(self, **kwargs) -> None:
+    async def async_turn_on(self, **kwargs: Any) -> None:
         """Enable auto power off."""
         period = (
             self.coordinator.data.power_management.auto_power_off_period
@@ -78,7 +88,7 @@ class DevialetAutoPowerOffSwitch(DevialetCoordinatorEntity, SwitchEntity):
             )
         )
 
-    async def async_turn_off(self, **kwargs) -> None:
+    async def async_turn_off(self, **kwargs: Any) -> None:
         """Disable auto power off."""
         period = (
             self.coordinator.data.power_management.auto_power_off_period

@@ -2,15 +2,22 @@
 
 from __future__ import annotations
 
-from homeassistant.components.media_player import (
-    MediaPlayerEntity,
+from homeassistant.components.media_player import MediaPlayerEntity
+from homeassistant.components.media_player.const import (
     MediaPlayerEntityFeature,
     MediaPlayerState,
+    MediaType,
 )
-from homeassistant.components.media_player.const import MediaType
+from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ServiceValidationError
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import build_source_option_map, source_label
+from .const import DOMAIN, build_source_option_map, source_label
+from .coordinator import DevialetConfigEntry, DevialetCoordinator
 from .entity import DevialetCoordinatorEntity
+
+# Coordinator reads are shared; HA limits actions per platform and entry.
+PARALLEL_UPDATES = 1
 
 BASE_FEATURES = (
     MediaPlayerEntityFeature.SELECT_SOURCE
@@ -29,7 +36,10 @@ OPERATION_FEATURE_MAP = {
 }
 
 
-async def async_setup_entry(hass, entry, async_add_entities) -> None:
+async def async_setup_entry(
+    hass: HomeAssistant, entry: DevialetConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+) -> None:
     """Set up the Devialet media player."""
     async_add_entities([DevialetMediaPlayer(entry.runtime_data)])
 
@@ -39,7 +49,7 @@ class DevialetMediaPlayer(DevialetCoordinatorEntity, MediaPlayerEntity):
 
     _attr_name = None
 
-    def __init__(self, coordinator) -> None:
+    def __init__(self, coordinator: DevialetCoordinator) -> None:
         """Initialize the media player."""
         super().__init__(coordinator, "media_player")
         self._attr_unique_id = (
@@ -274,7 +284,11 @@ class DevialetMediaPlayer(DevialetCoordinatorEntity, MediaPlayerEntity):
                     source_id = item.source_id
                     break
         if source_id is None:
-            raise ValueError(f"Unknown Devialet source option: {source}")
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="unknown_source",
+                translation_placeholders={"source": source},
+            )
         await self._async_perform(
             self.coordinator.client.async_select_source(source_id)
         )

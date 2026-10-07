@@ -4,14 +4,18 @@ from __future__ import annotations
 
 import pytest
 from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass
+from homeassistant.helpers.icon import async_get_icons
 
 from custom_components.devialet.sensor import SENSOR_DESCRIPTIONS
 
 
-def test_every_sensor_has_meaningful_presentation() -> None:
+@pytest.mark.asyncio
+async def test_every_sensor_has_meaningful_presentation(hass) -> None:
     """New sensors should not fall back to Home Assistant's generic eye icon."""
+    icons = (await async_get_icons(hass, "entity", {"devialet"}))["devialet"]["sensor"]
     assert all(
-        description.device_class is not None or description.icon is not None
+        description.device_class is not None
+        or icons.get(description.translation_key, {}).get("default")
         for description in SENSOR_DESCRIPTIONS
     )
 
@@ -40,7 +44,9 @@ def test_every_sensor_has_meaningful_presentation() -> None:
         ),
     ],
 )
-def test_sensor_descriptions_have_meaningful_presentation(
+@pytest.mark.asyncio
+async def test_sensor_descriptions_have_meaningful_presentation(
+    hass,
     key,
     icon,
     device_class,
@@ -49,6 +55,7 @@ def test_sensor_descriptions_have_meaningful_presentation(
     """Each sensor should provide an icon or a semantic device class."""
     description = next(item for item in SENSOR_DESCRIPTIONS if item.key == key)
 
-    assert description.icon == icon
+    icons = (await async_get_icons(hass, "entity", {"devialet"}))["devialet"]["sensor"]
+    assert icons.get(description.translation_key, {}).get("default") == icon
     assert description.device_class == device_class
     assert description.state_class == state_class

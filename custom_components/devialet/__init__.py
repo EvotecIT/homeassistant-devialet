@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from homeassistant.const import Platform
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
 
 from .coordinator import DevialetConfigEntry, DevialetCoordinator
@@ -18,7 +19,7 @@ PLATFORMS = [
 ]
 
 
-async def async_setup_entry(hass, entry: DevialetConfigEntry) -> bool:
+async def async_setup_entry(hass: HomeAssistant, entry: DevialetConfigEntry) -> bool:
     """Set up Devialet from a config entry."""
     coordinator = DevialetCoordinator(hass, entry)
     await coordinator.async_config_entry_first_refresh()
@@ -29,18 +30,18 @@ async def async_setup_entry(hass, entry: DevialetConfigEntry) -> bool:
     return True
 
 
-async def async_unload_entry(hass, entry: DevialetConfigEntry) -> bool:
+async def async_unload_entry(hass: HomeAssistant, entry: DevialetConfigEntry) -> bool:
     """Unload a config entry."""
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
 
-async def async_reload_entry(hass, entry: DevialetConfigEntry) -> None:
+async def async_reload_entry(hass: HomeAssistant, entry: DevialetConfigEntry) -> None:
     """Reload the config entry when options change."""
     await hass.config_entries.async_reload(entry.entry_id)
 
 
 async def _async_migrate_media_player_entity(
-    hass,
+    hass: HomeAssistant,
     entry: DevialetConfigEntry,
     coordinator: DevialetCoordinator,
 ) -> None:

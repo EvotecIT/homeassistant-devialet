@@ -7,6 +7,7 @@ from datetime import timedelta
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_PORT
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
@@ -17,8 +18,9 @@ from .const import (
     DEFAULT_PATH,
     DEFAULT_PORT,
     DEFAULT_SCAN_INTERVAL_SECONDS,
+    DOMAIN,
 )
-from .exceptions import DevialetError
+from .exceptions import DevialetConnectionError, DevialetError
 from .models import DevialetSnapshot
 
 _LOGGER = logging.getLogger(__name__)
@@ -31,7 +33,7 @@ class DevialetCoordinator(DataUpdateCoordinator[DevialetSnapshot]):
 
     config_entry: DevialetConfigEntry
 
-    def __init__(self, hass, entry: DevialetConfigEntry) -> None:
+    def __init__(self, hass: HomeAssistant, entry: DevialetConfigEntry) -> None:
         """Initialize the coordinator."""
         session = async_get_clientsession(hass)
         self.client = DevialetApiClient(
@@ -57,5 +59,13 @@ class DevialetCoordinator(DataUpdateCoordinator[DevialetSnapshot]):
         """Fetch data from the device."""
         try:
             return await self.client.async_refresh()
+        except DevialetConnectionError as err:
+            raise UpdateFailed(
+                translation_domain=DOMAIN,
+                translation_key="device_unavailable",
+            ) from err
         except DevialetError as err:
-            raise UpdateFailed(str(err)) from err
+            raise UpdateFailed(
+                translation_domain=DOMAIN,
+                translation_key="refresh_failed",
+            ) from err

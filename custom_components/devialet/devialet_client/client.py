@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import logging
 from collections.abc import Mapping
+from typing import Any
 
 import aiohttp
 
@@ -88,6 +89,14 @@ class DevialetApiClient:
         """Return the configured API path prefix."""
         return self._path
 
+    @property
+    def configuration_url(self) -> str:
+        """Return the device's HTTP origin, including IPv6 address brackets."""
+        host = self._host
+        if ":" in host and not host.startswith("["):
+            host = f"[{host}]"
+        return f"http://{host}:{self._port}"
+
     async def async_refresh(self) -> DevialetSnapshot:
         """Fetch a full snapshot of the current device state."""
         device = DevialetDeviceInfo.from_dict(
@@ -98,9 +107,12 @@ class DevialetApiClient:
         )
 
         sources_payload = await self._request_json("GET", SOURCES_ENDPOINT)
+        source_items = sources_payload.get("sources", [])
+        if not isinstance(source_items, list):
+            raise DevialetResponseError("Unexpected Devialet sources payload")
         sources = tuple(
             DevialetSource.from_dict(item)
-            for item in sources_payload.get("sources", [])
+            for item in source_items
             if isinstance(item, dict)
         )
 
@@ -358,7 +370,7 @@ class DevialetApiClient:
         self,
         method: str,
         endpoint: str,
-        payload: Mapping[str, object] | None = None,
+        payload: Mapping[str, Any] | None = None,
     ) -> dict[str, object] | None:
         """Request JSON from an optional endpoint."""
         try:
@@ -372,22 +384,18 @@ class DevialetApiClient:
         self,
         method: str,
         endpoint: str,
-        payload: Mapping[str, object] | None = None,
+        payload: Mapping[str, Any] | None = None,
     ) -> dict[str, object]:
         """Perform a request and return the JSON body."""
         url = self._build_url(endpoint)
-        request_kwargs: dict[str, object] = {
-            "allow_redirects": False,
-            "timeout": aiohttp.ClientTimeout(total=self._request_timeout),
-        }
-
-        if method == "POST":
-            request_kwargs["json"] = payload or {}
-        elif payload is not None:
-            request_kwargs["params"] = payload
-
         try:
-            async with self._session.request(method, url, **request_kwargs) as response:
+            async with self._session.request(
+                method, url, allow_redirects=False,
+                raise_for_status=False, auto_decompress=True,
+                timeout=aiohttp.ClientTimeout(total=self._request_timeout),
+                json=(payload or {}) if method == "POST" else None,
+                params=payload if method != "POST" else None,
+            ) as response:
                 response_text = await response.text()
                 response_content_type = response.headers.get("Content-Type", "")
         except aiohttp.ClientError as err:
@@ -449,7 +457,7 @@ class DevialetApiClient:
     def _build_url(self, endpoint: str) -> str:
         """Build a full request URL."""
         endpoint = endpoint if endpoint.startswith("/") else f"/{endpoint}"
-        return f"http://{self._host}:{self._port}{self._path}{endpoint}"
+        return f"{self.configuration_url}{self._path}{endpoint}"
 
     @staticmethod
     def _looks_like_web_ui_shell(response_text: str, content_type: str) -> bool:

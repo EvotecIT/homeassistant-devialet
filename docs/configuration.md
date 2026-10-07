@@ -98,14 +98,71 @@ the integration is not a request to purge recorder history or existing backups.
 
 ## Troubleshooting
 
-- **Cannot connect:** check the device IP, port, and network reachability.
-- **Unsupported device:** the endpoint did not provide the expected Devialet IP
-  Control API and identity. Check [device support](device-support.md).
-- **A setting is missing:** verify that the model advertises it and whether its
-  entity is disabled in Home Assistant.
-- **Temporarily unavailable:** entities recover after a later successful poll;
-  avoid deleting and recreating the integration as a first step.
+### Setup or discovery fails
 
-Reproduce an issue once and download diagnostics from the integration. Include
-the model, firmware, integration version, and steps. Review attachments for
-personal information before posting.
+Check the address against your router's current device list and confirm the API
+port, normally 80. Test reachability from the network where Home Assistant runs;
+a phone reaching the speaker does not prove that Home Assistant can reach it.
+If the devices are on different VLANs, check the routing and firewall rules
+between them. A successful ping alone does not establish HTTP API availability.
+
+For an HTTP check, the integration reads
+`http://<device-address>:<port>/ipcontrol/v1/devices/current`. This is a read-only
+device-information endpoint. A timeout or refused connection points to the
+address, port, network path or device availability. An HTML page or unrelated
+JSON response is not proof that the compatible API is available. See
+[device support](device-support.md) for the model limitations.
+
+Automatic discovery uses the device's `_devialet-http._tcp.local.` advertisement.
+If discovery is absent, try manual setup with the address and port. Manual setup
+can work when multicast discovery does not cross the network boundary, but it
+still requires access to the same local HTTP API. Discovery alone does not prove
+that every feature is supported.
+
+### An existing entry becomes unavailable
+
+Check whether the speaker's address changed. Use **Reconfigure** on the existing
+entry to update its connection settings. A different-device rejection means the
+destination does not match the saved identity; check the address rather than
+deleting the existing entry to bypass that check. Add a separate entry when
+connecting a different speaker.
+
+After a temporary outage, entities recover on a successful poll. Give the device
+time to become reachable, then check the integration's log if it remains
+unavailable. Repeated failed refreshes do not each produce a new outage message;
+one recovery message is logged when communication succeeds. Removing and
+recreating the entry is not necessary for normal network recovery.
+
+The local API has no integration username, password or token to renew. A login
+page or authentication response at the configured address should prompt a check
+of the endpoint and network path, rather than a search for Devialet account
+credentials in Home Assistant.
+
+### A control is missing or an action fails
+
+Check the device's entity list for disabled entities and review the optional
+setting-sensor option above. An unavailable control differs from a disabled
+entity: the former needs successful communication, while the latter needs an
+explicit enable action. Controls also depend on the capabilities reported by
+the device; enabling an entity cannot add an unsupported API feature.
+
+Use the source and mode choices shown by the current device. If an action is
+rejected, note which control failed and whether ordinary state updates still
+work. A reachable device can reject an individual operation. If all entities
+are unavailable, start with the connection checks instead. Do not repeatedly
+send the action while diagnosing an offline device.
+
+### Collect useful diagnostics
+
+From the integration entry's menu, download diagnostics when a device snapshot
+is available. Include the model, firmware, integration version, Home Assistant
+version, failing action, time of failure and steps to reproduce. State whether
+setup, ordinary polling and other controls work. If setup never completes,
+include the flow error and relevant log entry instead of expecting a device
+snapshot.
+
+The diagnostics handler redacts configured addresses, device identities and
+media information without modifying the live state. Review the downloaded file
+and any separate logs or screenshots before attaching them to an
+[issue](https://github.com/EvotecIT/homeassistant-devialet/issues); that redaction
+does not apply automatically to every attachment.

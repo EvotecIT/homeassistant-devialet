@@ -75,7 +75,8 @@ provides setup, entities, and automations. See the
 [runnable client example](../examples/python_client.py) instead of copying
 protocol calls into Home Assistant configuration.
 
-CI tests the declared HA 2026.7.2 minimum and HA 2026.9.4 stable on Python 3.14.
+CI tests the declared HA 2026.7.2 minimum and the fixed HA 2026.9.4 comparison
+target on Python 3.14. Newer releases need separate qualification.
 Install `requirements-test-minimum.txt` to reproduce the minimum lane in a separate
 virtual environment. Home Assistant supplies its compatible patched DNS and
-zeroconf dependencies. Strict typing runs against current stable HA.
+zeroconf dependencies. Strict typing runs against the comparison target.

@@ -53,7 +53,7 @@ jobs:
       - name: Pytest
         run: pytest
 
-      - name: Strict typing against current stable HA
+      - name: Strict typing against the HA 2026.9.4 comparison target
         if: matrix.homeassistant != '2026.7.2'
         run: python -m mypy --strict custom_components/devialet
 

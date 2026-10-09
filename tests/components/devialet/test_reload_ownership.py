@@ -1,5 +1,6 @@
 """Connection repair and rediscovery schedule one config-entry reload."""
 
+import asyncio
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, Mock
 
@@ -8,6 +9,7 @@ from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntryState, DiscoveryKey
 from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.data_entry_flow import FlowResultType
+from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.service_info.zeroconf import ZeroconfServiceInfo
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -138,3 +140,76 @@ async def test_registered_listener_preserves_setting_reload(hass, monkeypatch, f
     await hass.async_block_till_done()
 
     reload.assert_awaited_once_with(entry.entry_id)
+
+
+@pytest.mark.parametrize("first_refresh_fails", [False, True])
+async def test_rediscovery_during_setup_uses_new_host(
+    hass, monkeypatch, first_refresh_fails
+):
+    """Discovery reloads after the active setup lock, including failed refresh."""
+    entry = await _entry(hass, monkeypatch, ConfigEntryState.NOT_LOADED, changed=True)
+    entered, release = asyncio.Event(), asyncio.Event()
+    setup_hosts, unload_states = [], []
+
+    async def first_refresh():
+        entered.set()
+        await release.wait()
+        if first_refresh_fails:
+            raise ConfigEntryNotReady("Old speaker address is unavailable")
+
+    def coordinator_factory(_hass, setup_entry):
+        setup_hosts.append(setup_entry.data[CONF_HOST])
+        return Mock(
+            data=SimpleNamespace(device=SimpleNamespace(serial=TEST_SERIAL)),
+            async_config_entry_first_refresh=AsyncMock(
+                side_effect=first_refresh if len(setup_hosts) == 1 else None
+            ),
+        )
+
+    monkeypatch.setattr(
+        "custom_components.devialet.DevialetCoordinator", coordinator_factory
+    )
+    monkeypatch.setattr(hass.config_entries, "async_forward_entry_setups", AsyncMock())
+    monkeypatch.setattr(
+        hass.config_entries, "async_unload_platforms", AsyncMock(return_value=True)
+    )
+    reload = AsyncMock(wraps=hass.config_entries.async_reload)
+    monkeypatch.setattr(hass.config_entries, "async_reload", reload)
+    original_unload = hass.config_entries.async_unload
+
+    async def unload(*args, **kwargs):
+        unload_states.append(entry.state)
+        return await original_unload(*args, **kwargs)
+
+    monkeypatch.setattr(hass.config_entries, "async_unload", unload)
+    task = hass.async_create_task(hass.config_entries.async_setup(entry.entry_id))
+    await asyncio.wait_for(entered.wait(), timeout=10)
+    discovery = ZeroconfServiceInfo(
+        ip_address=TEST_HOST, ip_addresses=[TEST_HOST], hostname="dione.local.",
+        type="_http._tcp.local.", name="Living Room._http._tcp.local.", port=TEST_PORT,
+        properties={"manufacturer": "Devialet", "serialNumber": TEST_SERIAL},
+    )
+    try:
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN,
+            context={
+                "source": config_entries.SOURCE_ZEROCONF,
+                "discovery_key": DiscoveryKey(
+                    domain="zeroconf", key=(discovery.type, discovery.name), version=1
+                ),
+            },
+            data=discovery,
+        )
+        assert result["reason"] == "already_configured"
+        assert entry.state is ConfigEntryState.SETUP_IN_PROGRESS
+    finally:
+        release.set()
+    await task
+    await hass.async_block_till_done()
+    assert entry.state is ConfigEntryState.LOADED
+    assert setup_hosts == ["192.0.2.99", TEST_HOST]
+    assert unload_states == [
+        ConfigEntryState.SETUP_RETRY if first_refresh_fails else ConfigEntryState.LOADED
+    ]
+    reload.assert_awaited_once_with(entry.entry_id)
+    assert len(entry.update_listeners) == 1

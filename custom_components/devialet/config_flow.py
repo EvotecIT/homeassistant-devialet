@@ -107,14 +107,21 @@ class DevialetConfigFlow(ConfigFlow, domain=DOMAIN):
                 else:
                     await self.async_set_unique_id(serial)
                     self._abort_if_unique_id_mismatch(reason="wrong_device")
-                    return self.async_update_reload_and_abort(
+                    changed = self.hass.config_entries.async_update_entry(
                         entry,
-                        data_updates={
+                        data={
+                            **entry.data,
                             CONF_HOST: self._host,
                             CONF_PORT: self._port,
                             CONF_PATH: self._path,
                         },
                     )
+                    # A loaded entry's listener reloads changed connections.
+                    # An unchanged repair or an entry without a listener still
+                    # needs one explicit reload.
+                    if not changed or not entry.update_listeners:
+                        self.hass.config_entries.async_schedule_reload(entry.entry_id)
+                    return self.async_abort(reason="reconfigure_successful")
 
         return self.async_show_form(
             step_id="reconfigure",
@@ -154,7 +161,8 @@ class DevialetConfigFlow(ConfigFlow, domain=DOMAIN):
                     CONF_HOST: self._host,
                     CONF_PORT: self._port,
                     CONF_PATH: self._path,
-                }
+                },
+                reload_on_update=False,
             )
 
         self.context["title_placeholders"] = {"title": self._title}

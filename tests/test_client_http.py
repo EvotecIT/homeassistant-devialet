@@ -1,5 +1,6 @@
 """Borrowed HTTP session behavior against a local server."""
 
+import asyncio
 import gzip
 import json
 from contextlib import asynccontextmanager
@@ -8,7 +9,10 @@ import pytest
 from aiohttp import ClientSession, web
 
 from custom_components.devialet.devialet_client.client import DevialetApiClient
-from custom_components.devialet.devialet_client.exceptions import DevialetResponseError
+from custom_components.devialet.devialet_client.exceptions import (
+    DevialetConnectionError,
+    DevialetResponseError,
+)
 
 pytestmark = pytest.mark.usefixtures("socket_enabled")
 
@@ -108,3 +112,66 @@ async def test_borrowed_session_decompression_policy_preserves_json_contract():
         ).async_get_volume()
         assert volume.volume == 42
         assert not session.closed
+
+
+@pytest.mark.parametrize(
+    ("body", "code"),
+    [("invalid-json", None), ("[]", None),
+     ('{"error":{"code":"Rejected"}}', "Rejected"),
+     ('{"error":{"code":42}}', None)],
+)
+async def test_malformed_and_api_error_responses_do_not_become_status(body, code):
+    """A successful HTTP status is insufficient when the payload is invalid."""
+    async def handler(request):
+        return web.Response(text=body, content_type="application/json")
+
+    async with local_server(handler) as port, ClientSession() as session:
+        client = DevialetApiClient("127.0.0.1", session, port=port)
+        with pytest.raises(DevialetResponseError) as caught:
+            await client.async_get_volume()
+        assert caught.value.status == 200
+        assert caught.value.code == code
+        assert not session.closed
+
+
+@pytest.mark.parametrize("failure", ["disconnect", "timeout", "cancel"])
+async def test_transport_failure_preserves_session_and_allows_next_request(failure):
+    """Failed or cancelled reads leave the caller's session usable."""
+    entered, release = asyncio.Event(), asyncio.Event()
+    recovering = False
+
+    async def handler(request):
+        if not recovering:
+            entered.set()
+            if failure == "disconnect":
+                request.transport.close()
+            else:
+                await release.wait()
+        return web.json_response({"volume": 42})
+
+    async with local_server(handler) as port, ClientSession() as session:
+        client = DevialetApiClient(
+            "127.0.0.1", session, port=port,
+            request_timeout=0.1 if failure == "timeout" else 2,
+        )
+        try:
+            if failure == "cancel":
+                async with asyncio.TaskGroup() as tasks:
+                    task = tasks.create_task(client.async_get_volume())
+                    async with asyncio.timeout(2):
+                        await entered.wait()
+                    task.cancel()
+                    with pytest.raises(asyncio.CancelledError):
+                        await task
+            else:
+                with pytest.raises(DevialetConnectionError):
+                    await client.async_get_volume()
+            assert entered.is_set()
+            assert not session.closed
+        finally:
+            recovering = True
+            release.set()
+        volume = await DevialetApiClient(
+            "127.0.0.1", session, port=port
+        ).async_get_volume()
+        assert volume.volume == 42

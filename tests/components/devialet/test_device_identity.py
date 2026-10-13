@@ -2,7 +2,8 @@
 
 import asyncio
 from dataclasses import replace
-from unittest.mock import patch
+from ipaddress import ip_address
+from unittest.mock import AsyncMock, patch
 
 import pytest
 from homeassistant import config_entries
@@ -14,6 +15,7 @@ from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.translation import async_get_translations
 
 from custom_components.devialet.const import DOMAIN
+from tests.components.devialet.test_flow_validation import discovery
 from tests.components.devialet.test_init import _mock_refresh_endpoints
 from tests.conftest import (
     DEVICE_PAYLOAD,
@@ -315,3 +317,30 @@ async def test_existing_serial_registry_survives_fallback_entry_upgrade(
         devices, mock_config_entry.entry_id
     ) == [devices.async_get(device.id)]
     assert await hass.config_entries.async_unload(mock_config_entry.entry_id)
+
+
+@pytest.mark.parametrize('advertised_serial', [None, TEST_SERIAL])
+async def test_discovery_alias_updates_existing_address(
+    hass, mock_config_entry, aioclient_mock, advertised_serial,
+):
+    mock_config_entry.add_to_hass(hass)
+    hass.config_entries.async_update_entry(mock_config_entry, unique_id=TEST_DEVICE_ID)
+    new_host = '192.0.2.42'
+    info = discovery(serial=advertised_serial)
+    info.host = ip_address(new_host)
+    _mock_refresh_endpoints(
+        aioclient_mock, base_url=TEST_BASE_URL.replace(TEST_HOST, new_host),
+    )
+    with patch.object(
+        hass.config_entries, 'async_reload', AsyncMock(return_value=True),
+    ):
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN, context={'source': config_entries.SOURCE_ZEROCONF}, data=info,
+        )
+        assert result['type'] == 'form' and result['step_id'] == 'confirm'
+        result = await hass.config_entries.flow.async_configure(result['flow_id'], {})
+        await hass.async_block_till_done()
+    assert result['type'] == 'abort' and result['reason'] == 'already_configured'
+    assert mock_config_entry.unique_id == TEST_DEVICE_ID
+    assert mock_config_entry.data['host'] == new_host
+    assert hass.config_entries.async_entries(DOMAIN) == [mock_config_entry]

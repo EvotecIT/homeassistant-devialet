@@ -82,3 +82,11 @@ target on Python 3.14. Newer releases need separate qualification.
 Install `requirements-test-minimum.txt` to reproduce the minimum lane in a separate
 virtual environment. Home Assistant supplies its compatible patched DNS and
 zeroconf dependencies. Strict typing runs in both lanes.
+
+Home Assistant 2026.9 and later [alias the voluptuous import to Probatio](https://developers.home-assistant.io/blog/2026/09/30/probatio-validation-engine/)
+at runtime. The minimum host still uses voluptuous. Static checking cannot follow
+HA's runtime alias, so the three form-schema arguments carry narrowly scoped
+`arg-type` suppressions; `unused-ignore` permits the same source to be checked
+against the minimum host. These exceptions cover the host alias, preserve the
+existing validators, and do not skip a module or suppress unrelated errors.
+Public flow tests exercise schema validation on both hosts.

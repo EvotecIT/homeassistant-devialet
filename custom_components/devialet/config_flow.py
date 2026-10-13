@@ -4,8 +4,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+# HA aliases this import to Probatio at runtime from 2026.9. Static analyzers
+# cannot follow that alias; only the three schema arguments need suppressions.
 import voluptuous as vol
 from homeassistant.config_entries import (
+    SOURCE_ZEROCONF,
     ConfigEntry,
     ConfigFlow,
     ConfigFlowResult,
@@ -68,7 +71,7 @@ class DevialetConfigFlow(ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(
             step_id="user",
-            data_schema=vol.Schema(
+            data_schema=vol.Schema(  # type: ignore[arg-type, unused-ignore]
                 {
                     vol.Required(CONF_HOST): str,
                     vol.Optional(CONF_PORT, default=DEFAULT_PORT): cv.port,
@@ -129,7 +132,7 @@ class DevialetConfigFlow(ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(
             step_id="reconfigure",
-            data_schema=vol.Schema(
+            data_schema=vol.Schema(  # type: ignore[arg-type, unused-ignore]
                 {
                     vol.Required(
                         CONF_HOST,
@@ -217,7 +220,12 @@ class DevialetConfigFlow(ConfigFlow, domain=DOMAIN):
             return None
 
         await self.async_set_unique_id(serial)
-        self._abort_if_unique_id_configured()
+        self._abort_if_unique_id_configured(
+            updates={
+                CONF_HOST: self._host, CONF_PORT: self._port, CONF_PATH: self._path,
+            } if self.source == SOURCE_ZEROCONF else None,
+            reload_on_update=False,
+        )
 
         title = (
             snapshot.system.system_name or snapshot.device.device_name or self._title
@@ -244,7 +252,7 @@ class DevialetOptionsFlow(OptionsFlow):
 
         return self.async_show_form(
             step_id="init",
-            data_schema=vol.Schema(
+            data_schema=vol.Schema(  # type: ignore[arg-type, unused-ignore]
                 {
                     vol.Optional(
                         CONF_SCAN_INTERVAL,

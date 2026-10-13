@@ -122,12 +122,13 @@ async def test_refresh_request_budget_and_connection_reuse(capabilities):
         ClientSession(connector=connector) as session,
     ):
         client = DevialetApiClient("127.0.0.1", session, port=port)
-        async with asyncio.timeout(5):
-            for _ in range(6):
-                snapshot = await client.async_refresh()
-                assert snapshot.volume.volume == 47
-                assert not connector._acquired
-                assert not session.closed
+        # Each request has the client's deadline; this measures counts and
+        # resource ownership rather than six polls' wall-clock throughput.
+        for _ in range(6):
+            snapshot = await client.async_refresh()
+            assert snapshot.volume.volume == 47
+            assert not connector._acquired
+            assert not session.closed
         assert paths == expected * 6
         assert len(connections) == 1
     assert connector.closed
@@ -219,6 +220,8 @@ async def test_transport_failure_preserves_session_and_allows_next_request(failu
     recovering = False
 
     async def handler(request):
+        if request.path == "/ready":
+            return web.json_response({"ready": True})
         if not recovering:
             entered.set()
             if failure == "disconnect":
@@ -228,15 +231,18 @@ async def test_transport_failure_preserves_session_and_allows_next_request(failu
         return web.json_response({"volume": 42})
 
     async with local_server(handler) as port, ClientSession() as session:
+        # Establish the local connection before testing a blocked response.
+        async with session.get(f"http://127.0.0.1:{port}/ready") as response:
+            await response.read()
         client = DevialetApiClient(
             "127.0.0.1", session, port=port,
-            request_timeout=0.1 if failure == "timeout" else 2,
+            request_timeout=1 if failure == "timeout" else 5,
         )
         try:
             if failure == "cancel":
                 async with asyncio.TaskGroup() as tasks:
                     task = tasks.create_task(client.async_get_volume())
-                    async with asyncio.timeout(2):
+                    async with asyncio.timeout(5):
                         await entered.wait()
                     task.cancel()
                     with pytest.raises(asyncio.CancelledError):

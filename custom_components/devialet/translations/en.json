@@ -122,6 +122,15 @@
     },
     "refresh_failed": {
       "message": "Could not read the Devialet speaker state. Try again."
+    },
+    "wrong_device": {
+      "message": "This address belongs to a different Devialet speaker. Use Reconfigure to reconnect the saved speaker."
+    }
+  },
+  "issues": {
+    "wrong_device": {
+      "title": "The saved address identifies a different speaker",
+      "description": "Check the original speaker's address, then use Reconfigure on the Devialet entry to reconnect it. Add a separate integration entry for another speaker. Controls remain blocked until the saved identity is verified."
     }
   }
 }

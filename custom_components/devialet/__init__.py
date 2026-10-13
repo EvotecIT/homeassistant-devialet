@@ -5,7 +5,9 @@ from __future__ import annotations
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers import issue_registry as ir
 
+from .const import DOMAIN
 from .coordinator import DevialetConfigEntry, DevialetCoordinator
 
 PLATFORMS = [
@@ -54,6 +56,11 @@ async def async_unload_entry(hass: HomeAssistant, entry: DevialetConfigEntry) ->
 async def async_reload_entry(hass: HomeAssistant, entry: DevialetConfigEntry) -> None:
     """Reload the config entry when options change."""
     await hass.config_entries.async_reload(entry.entry_id)
+
+
+async def async_remove_entry(hass: HomeAssistant, entry: DevialetConfigEntry) -> None:
+    """Remove the identity repair when its entry is deleted."""
+    ir.async_delete_issue(hass, DOMAIN, f"device_identity_{entry.entry_id}")
 
 
 async def _async_migrate_media_player_entity(

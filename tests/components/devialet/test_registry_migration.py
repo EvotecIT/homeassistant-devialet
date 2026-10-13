@@ -5,7 +5,7 @@ from homeassistant.helpers import entity_registry as er
 
 from custom_components.devialet.const import DOMAIN
 from tests.components.devialet.test_init import _mock_refresh_endpoints
-from tests.conftest import DEVICE_PAYLOAD, TEST_SERIAL
+from tests.conftest import DEVICE_PAYLOAD, TEST_DEVICE_ID, TEST_SERIAL
 
 
 @pytest.mark.parametrize("scenario", ["legacy_only", "duplicate", "no_serial"])
@@ -14,6 +14,11 @@ async def test_legacy_media_player_registry_migration(
 ):
     """Migrate the old unique ID without discarding user customization."""
     mock_config_entry.add_to_hass(hass)
+    if scenario == "no_serial":
+        # A setup flow without a serial saves the device ID as its identity.
+        hass.config_entries.async_update_entry(
+            mock_config_entry, unique_id=TEST_DEVICE_ID,
+        )
     registry = er.async_get(hass)
     legacy = registry.async_get_or_create(
         "media_player", DOMAIN, f"{TEST_SERIAL}_media_player",

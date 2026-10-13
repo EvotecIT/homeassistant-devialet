@@ -59,7 +59,13 @@ guaranteed maximum delay when the device or network is slow.
 Each refresh reads device and system information, sources, the selected source,
 and volume. It also reads night mode, rendering mode, LED mode, and power
 management when the reported capabilities allow them. A refresh therefore makes
-several HTTP requests. Shorter intervals increase traffic to the speaker.
+five requests for a device that explicitly reports none of the optional features,
+nine when all four settings are supported, or up to eleven when volume and
+power management need their alternate endpoints. At the five-second default,
+that is up to 132 requests per minute per device before action-triggered
+refreshes. Requests are sequential; each has a three-second deadline. Slow or
+failed requests can extend the refresh beyond the configured interval. Shorter
+intervals increase traffic to the speaker.
 
 Successful Home Assistant controls request a refresh. When a refresh fails,
 coordinator-backed entities become unavailable and recover after a successful
@@ -73,6 +79,21 @@ actual options shown by your device rather than copying labels from another
 model.
 
 See [automations](automations.md) for volume and mute examples.
+
+| Control | Behaviour and limits |
+| --- | --- |
+| Media player | Volume, mute, current source and source selection; playback controls depend on the active source's reported operations. Stop uses the pause operation. Seek is offered when the active source reports the seek operation. |
+| Night-mode and auto power-off switches | Created when their settings are available. Auto power-off retains the current period when toggled. |
+| Rendering-mode and LED-mode selects | Use the choices reported by the device; copying a label from another model may be rejected. |
+| Auto power-off period | Configures 5–240 minutes in five-minute steps where supported. |
+| Bluetooth pairing button | Requests Bluetooth advertising; it does not pair another device or report when pairing finishes. The firmware controls the discoverability window, whose duration is not qualified here. |
+| Setting and stream sensors | Display the data returned by the device. Technical stream sensors are diagnostic and disabled by default; optional setting sensors are controlled by the option above. |
+
+Ordinary HA actions use the entity and parameters shown in **Developer tools →
+Actions**. No custom `devialet` action parameters are required. For source or mode
+selection, use the current entity's choices. An absent capability does not become
+available by enabling an entity. Features such as room calibration, orientation,
+factory reset and firmware updates are not exposed as integration controls.
 
 ## Remove the integration
 
@@ -132,6 +153,14 @@ time to become reachable, then check the integration's log if it remains
 unavailable. Repeated failed refreshes do not each produce a new outage message;
 one recovery message is logged when communication succeeds. Removing and
 recreating the entry is not necessary for normal network recovery.
+
+If a poll finds a different speaker at the saved address, the integration retains
+the original identity, marks its entities unavailable and creates a repair issue.
+Commands are blocked after that mismatch is detected. Check the original
+speaker's address and use **Reconfigure** to reconnect it; add a separate entry
+for another speaker. A successful identity check clears the repair. Removing the
+entry also removes its repair issue. This detects a mismatch during polling; it
+does not verify identity before every individual HTTP command.
 
 The local API has no integration username, password or token to renew. A login
 page or authentication response at the configured address should prompt a check

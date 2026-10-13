@@ -6,12 +6,36 @@ import json
 from contextlib import asynccontextmanager
 
 import pytest
-from aiohttp import ClientSession, web
+from aiohttp import ClientSession, TCPConnector, web
 
 from custom_components.devialet.devialet_client.client import DevialetApiClient
+from custom_components.devialet.devialet_client.const import (
+    CURRENT_SOURCE_ENDPOINT,
+    DEVICE_INFO_ENDPOINT,
+    LED_MODE_ENDPOINT,
+    NIGHT_MODE_ENDPOINT,
+    POWER_MANAGEMENT_AUDIO_ENDPOINT,
+    POWER_MANAGEMENT_ENDPOINT,
+    RENDERING_MODE_ENDPOINT,
+    SOURCES_ENDPOINT,
+    SYSTEM_INFO_ENDPOINT,
+    SYSTEM_VOLUME_ENDPOINT,
+    VOLUME_ENDPOINT,
+)
 from custom_components.devialet.devialet_client.exceptions import (
     DevialetConnectionError,
     DevialetResponseError,
+)
+from tests.conftest import (
+    CURRENT_SOURCE_PAYLOAD,
+    DEVICE_PAYLOAD,
+    LED_MODE_PAYLOAD,
+    NIGHT_MODE_PAYLOAD,
+    POWER_MANAGEMENT_PAYLOAD,
+    RENDERING_MODE_PAYLOAD,
+    SOURCES_PAYLOAD,
+    SYSTEM_PAYLOAD,
+    VOLUME_PAYLOAD,
 )
 
 pytestmark = pytest.mark.usefixtures("socket_enabled")
@@ -53,6 +77,60 @@ async def test_borrowed_status_policy_preserves_optional_volume_fallback(raise_s
             "/ipcontrol/v1/systems/current/sources/current/soundControl/volume",
         ]
         assert not session.closed
+
+
+@pytest.mark.parametrize("capabilities", ["complete", "none", "fallback"])
+async def test_refresh_request_budget_and_connection_reuse(capabilities):
+    """Repeated full polls release responses and reuse the caller's connection."""
+    core = [DEVICE_INFO_ENDPOINT, SYSTEM_INFO_ENDPOINT, SOURCES_ENDPOINT,
+            CURRENT_SOURCE_ENDPOINT, VOLUME_ENDPOINT]
+    optional = [NIGHT_MODE_ENDPOINT, RENDERING_MODE_ENDPOINT, LED_MODE_ENDPOINT,
+                POWER_MANAGEMENT_ENDPOINT]
+    device = dict(DEVICE_PAYLOAD)
+    system = dict(SYSTEM_PAYLOAD)
+    if capabilities == "none":
+        device["availableFeatures"] = system["availableFeatures"] = []
+    payloads = dict(zip(core, [device, system, SOURCES_PAYLOAD,
+                              CURRENT_SOURCE_PAYLOAD, VOLUME_PAYLOAD], strict=True))
+    payloads.update(zip(optional, [NIGHT_MODE_PAYLOAD, RENDERING_MODE_PAYLOAD,
+                                  LED_MODE_PAYLOAD, POWER_MANAGEMENT_PAYLOAD],
+                        strict=True))
+    payloads[SYSTEM_VOLUME_ENDPOINT] = VOLUME_PAYLOAD
+    payloads[POWER_MANAGEMENT_AUDIO_ENDPOINT] = POWER_MANAGEMENT_PAYLOAD
+    paths, connections = [], set()
+
+    async def handler(request):
+        endpoint = request.path.removeprefix("/ipcontrol/v1")
+        paths.append(endpoint)
+        connections.add(request.transport)
+        if capabilities == "fallback" and endpoint in (
+            VOLUME_ENDPOINT, POWER_MANAGEMENT_ENDPOINT,
+        ):
+            return web.Response(status=404)
+        return web.json_response(payloads[endpoint])
+
+    expected = core.copy()
+    if capabilities == "fallback":
+        expected.append(SYSTEM_VOLUME_ENDPOINT)
+    if capabilities != "none":
+        expected.extend(optional)
+    if capabilities == "fallback":
+        expected.append(POWER_MANAGEMENT_AUDIO_ENDPOINT)
+    connector = TCPConnector(limit=1)
+    async with (
+        local_server(handler) as port,
+        ClientSession(connector=connector) as session,
+    ):
+        client = DevialetApiClient("127.0.0.1", session, port=port)
+        async with asyncio.timeout(5):
+            for _ in range(6):
+                snapshot = await client.async_refresh()
+                assert snapshot.volume.volume == 47
+                assert not connector._acquired
+                assert not session.closed
+        assert paths == expected * 6
+        assert len(connections) == 1
+    assert connector.closed
 
 
 @pytest.mark.parametrize("operation", ["read", "write"])

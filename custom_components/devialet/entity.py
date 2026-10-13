@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from collections.abc import Awaitable
+from collections.abc import Coroutine
+from typing import Any
 
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.device_registry import DeviceInfo
@@ -49,8 +50,13 @@ class DevialetCoordinatorEntity(CoordinatorEntity[DevialetCoordinator]):
             configuration_url=self.coordinator.client.configuration_url,
         )
 
-    async def _async_perform(self, action: Awaitable[object]) -> None:
+    async def _async_perform(self, action: Coroutine[Any, Any, object]) -> None:
         """Perform a device action and refresh the coordinator afterwards."""
+        if not self.coordinator.identity_matches_entry:
+            action.close()
+            raise HomeAssistantError(
+                translation_domain=DOMAIN, translation_key="wrong_device",
+            )
         try:
             await action
         except DevialetConnectionError as err:

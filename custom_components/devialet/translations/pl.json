@@ -76,6 +76,15 @@
     },
     "refresh_failed": {
       "message": "Nie można odczytać stanu głośnika Devialet. Spróbuj ponownie."
+    },
+    "wrong_device": {
+      "message": "Pod tym adresem znajduje się inny głośnik Devialet. Użyj opcji Zmień konfigurację, aby połączyć zapisany głośnik."
+    }
+  },
+  "issues": {
+    "wrong_device": {
+      "title": "Zapisany adres wskazuje inny głośnik",
+      "description": "Sprawdź adres pierwotnego głośnika, a następnie użyj opcji Zmień konfigurację we wpisie Devialet, aby połączyć go ponownie. Dla innego głośnika dodaj osobny wpis integracji. Sterowanie pozostaje zablokowane do czasu potwierdzenia zapisanej tożsamości."
     }
   }
 }

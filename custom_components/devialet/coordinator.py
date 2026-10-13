@@ -72,6 +72,10 @@ class DevialetCoordinator(DataUpdateCoordinator[DevialetSnapshot]):
                 translation_domain=DOMAIN,
                 translation_key="refresh_failed",
             ) from err
+        # An immediate action refresh can finish after HA shuts this owner down.
+        # It must not change repair state now owned by a replacement or removed entry.
+        if self._shutdown_requested:
+            return snapshot
         issue_id = f"device_identity_{self.config_entry.entry_id}"
         expected = self.config_entry.unique_id
         self.identity_matches_entry = expected is None or expected in (
@@ -88,3 +92,8 @@ class DevialetCoordinator(DataUpdateCoordinator[DevialetSnapshot]):
             )
         ir.async_delete_issue(self.hass, DOMAIN, issue_id)
         return snapshot
+
+    async def async_shutdown(self) -> None:
+        """Reject retained actions when HA releases this coordinator."""
+        self.identity_matches_entry = False
+        await super().async_shutdown()

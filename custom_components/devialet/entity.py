@@ -22,8 +22,17 @@ class DevialetCoordinatorEntity(CoordinatorEntity[DevialetCoordinator]):
     def __init__(self, coordinator: DevialetCoordinator, unique_suffix: str) -> None:
         """Initialize the entity."""
         super().__init__(coordinator)
-        serial = coordinator.data.device.serial or coordinator.config_entry.entry_id
+        serial = self._registry_identity
         self._attr_unique_id = f"{serial}_{unique_suffix}"
+
+    @property
+    def _registry_identity(self) -> str:
+        """Preserve the fallback identity when a serial becomes available later."""
+        entry = self.coordinator.config_entry
+        device = self.coordinator.data.device
+        if entry.unique_id is not None and entry.unique_id == device.device_id:
+            return entry.entry_id
+        return device.serial or entry.entry_id
 
     @property
     def available(self) -> bool:
@@ -37,7 +46,7 @@ class DevialetCoordinatorEntity(CoordinatorEntity[DevialetCoordinator]):
         system = self.coordinator.data.system
         return DeviceInfo(
             identifiers={
-                (DOMAIN, device.serial or self.coordinator.config_entry.entry_id)
+                (DOMAIN, self._registry_identity)
             },
             manufacturer=MANUFACTURER,
             model=device.model or device.model_family,

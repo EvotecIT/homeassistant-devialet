@@ -102,6 +102,10 @@ class DevialetConfigFlow(ConfigFlow, domain=DOMAIN):
                 self._errors["base"] = "cannot_connect"
             else:
                 serial = snapshot.device.serial or snapshot.device.device_id
+                if entry.unique_id is not None and entry.unique_id in (
+                    snapshot.device.serial, snapshot.device.device_id,
+                ):
+                    serial = entry.unique_id
                 if serial is None:
                     self._errors["base"] = "unsupported"
                 else:
@@ -199,7 +203,15 @@ class DevialetConfigFlow(ConfigFlow, domain=DOMAIN):
             self._errors["base"] = "cannot_connect"
             return None
 
-        serial = snapshot.device.serial or snapshot.device.device_id
+        serial = next(
+            (
+                entry.unique_id for entry in self._async_current_entries()
+                if entry.unique_id is not None and entry.unique_id in (
+                    snapshot.device.serial, snapshot.device.device_id,
+                )
+            ),
+            snapshot.device.serial or snapshot.device.device_id,
+        )
         if serial is None:
             self._errors["base"] = "unsupported"
             return None

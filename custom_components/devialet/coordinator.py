@@ -45,6 +45,7 @@ class DevialetCoordinator(DataUpdateCoordinator[DevialetSnapshot]):
             session=session,
         )
         self.identity_matches_entry = False
+        self.registry_identity = entry.entry_id
         super().__init__(
             hass,
             _LOGGER,

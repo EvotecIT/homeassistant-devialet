@@ -15,7 +15,13 @@ from homeassistant.helpers.translation import async_get_translations
 
 from custom_components.devialet.const import DOMAIN
 from tests.components.devialet.test_init import _mock_refresh_endpoints
-from tests.conftest import DEVICE_PAYLOAD, TEST_BASE_URL, TEST_DEVICE_ID, TEST_HOST
+from tests.conftest import (
+    DEVICE_PAYLOAD,
+    TEST_BASE_URL,
+    TEST_DEVICE_ID,
+    TEST_HOST,
+    TEST_SERIAL,
+)
 
 
 async def test_setup_rejects_reassigned_address_without_creating_entities(
@@ -246,4 +252,66 @@ async def test_fallback_identity_survives_serial_arrival_and_reconfigure(
     )
     assert result["type"] == "abort" and result["reason"] == "already_configured"
     assert hass.config_entries.async_entries(DOMAIN) == [mock_config_entry]
+    assert await hass.config_entries.async_unload(mock_config_entry.entry_id)
+
+
+@pytest.mark.parametrize("legacy", [False, True])
+async def test_existing_serial_registry_survives_fallback_entry_upgrade(
+    hass, mock_config_entry, aioclient_mock, legacy
+):
+    """Keep registry IDs already created by the previous serial-first behaviour."""
+    mock_config_entry.add_to_hass(hass)
+    hass.config_entries.async_update_entry(mock_config_entry, unique_id=TEST_DEVICE_ID)
+    registry = er.async_get(hass)
+    devices = dr.async_get(hass)
+    device = devices.async_get_or_create(
+        config_entry_id=mock_config_entry.entry_id,
+        identifiers={(DOMAIN, TEST_SERIAL)},
+    )
+    media = registry.async_get_or_create(
+        "media_player", DOMAIN,
+        f"{TEST_SERIAL}_media_player" if legacy else TEST_SERIAL,
+        config_entry=mock_config_entry, device_id=device.id,
+        suggested_object_id="saved_living_room_speaker",
+    )
+    child = registry.async_get_or_create(
+        "switch", DOMAIN, f"{TEST_SERIAL}_night_mode",
+        config_entry=mock_config_entry, device_id=device.id,
+        suggested_object_id="saved_night_mode",
+    )
+    for row in (media, child):
+        registry.async_update_entity(
+            row.entity_id, name="My saved setting", icon="mdi:music",
+            disabled_by=er.RegistryEntryDisabler.USER,
+        )
+    _mock_refresh_endpoints(aioclient_mock)
+    assert await hass.config_entries.async_setup(mock_config_entry.entry_id)
+    await hass.async_block_till_done()
+    assert registry.async_get(media.entity_id).unique_id == TEST_SERIAL
+    for row in (media, child):
+        actual = registry.async_get(row.entity_id)
+        assert actual.name == "My saved setting" and actual.icon == "mdi:music"
+        assert actual.disabled_by is er.RegistryEntryDisabler.USER
+        assert actual.device_id == device.id
+    assert registry.async_get_entity_id(
+        "media_player", DOMAIN, mock_config_entry.entry_id
+    ) is None
+    assert dr.async_entries_for_config_entry(
+        devices, mock_config_entry.entry_id
+    ) == [devices.async_get(device.id)]
+    before = {row.entity_id: row.unique_id for row in er.async_entries_for_config_entry(
+        registry, mock_config_entry.entry_id
+    )}
+    aioclient_mock.clear_requests()
+    _mock_refresh_endpoints(
+        aioclient_mock, device_payload={**DEVICE_PAYLOAD, "serial": None},
+    )
+    assert await hass.config_entries.async_reload(mock_config_entry.entry_id)
+    await hass.async_block_till_done()
+    assert {row.entity_id: row.unique_id for row in er.async_entries_for_config_entry(
+        registry, mock_config_entry.entry_id
+    )} == before
+    assert dr.async_entries_for_config_entry(
+        devices, mock_config_entry.entry_id
+    ) == [devices.async_get(device.id)]
     assert await hass.config_entries.async_unload(mock_config_entry.entry_id)

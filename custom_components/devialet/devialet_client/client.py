@@ -332,7 +332,7 @@ class DevialetApiClient:
                 payload=payload,
             )
         except DevialetResponseError as err:
-            if err.status != 404 and err.code != "NotFound":
+            if not _is_missing_endpoint(err):
                 raise
             await self._request_json(
                 "POST",
@@ -384,7 +384,7 @@ class DevialetApiClient:
         try:
             return await self._request_json(method, endpoint, payload=payload)
         except DevialetResponseError as err:
-            if err.status == 404 or err.code == "NotFound":
+            if _is_missing_endpoint(err):
                 return None
             if allow_no_current_source and err.code == "NoCurrentSource":
                 return None
@@ -493,6 +493,14 @@ class DevialetApiClient:
             and "<app-root" in normalized
             and "<title>webui</title>" in normalized
         )
+
+
+def _is_missing_endpoint(error: DevialetResponseError) -> bool:
+    """Preserve missing-endpoint fallbacks without hiding other HTTP failures."""
+    return error.status == 404 or (
+        error.code == "NotFound"
+        and (error.status is None or error.status < 400)
+    )
 
 
 def _supports_optional_feature(

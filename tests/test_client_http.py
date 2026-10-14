@@ -58,6 +58,7 @@ async def test_no_current_source_reads_over_http(status, group_missing):
     paths = []
 
     async def handler(request):
+        """Report source absence, optionally without group endpoint support."""
         paths.append(request.path)
         if group_missing and "/groups/" in request.path:
             return web.Response(status=404)
@@ -84,6 +85,7 @@ async def test_source_absence_does_not_hide_other_failures(operation):
     code = "InternalError" if operation == "volume" else "NoCurrentSource"
 
     async def handler(request):
+        """Return an API error that the selected operation must propagate."""
         return web.json_response({"error": {"code": code}}, status=400)
 
     async with (
@@ -103,16 +105,24 @@ async def test_source_absence_does_not_hide_other_failures(operation):
 
 
 @pytest.mark.parametrize("operation", ["read", "write"])
-@pytest.mark.parametrize("status", [404, 503])
+@pytest.mark.parametrize(
+    ("status", "error_code"),
+    [(404, None), (200, "NotFound"), (503, None), (503, "NotFound")],
+)
 async def test_power_management_fallback_requires_unsupported_endpoint(
-    operation, status
+    operation, status, error_code
 ):
     requests = []
 
     async def handler(request):
+        """Distinguish missing endpoints from failed primary settings requests."""
         body = await request.json() if request.method == "POST" else None
         requests.append((request.method, request.path, body))
         if "/audio/" not in request.path:
+            if error_code is not None:
+                return web.json_response(
+                    {"error": {"code": error_code}}, status=status
+                )
             return web.Response(status=status)
         return web.json_response({"autoPowerOff": "disabled", "autoPowerOffPeriod": 90})
 

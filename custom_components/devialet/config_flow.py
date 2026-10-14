@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+# HA aliases this import to Probatio at runtime from 2026.9. Static analyzers
+# cannot follow that alias; only the three schema arguments need suppressions.
 import voluptuous as vol
 from homeassistant.config_entries import (
     ConfigEntry,
@@ -68,7 +70,7 @@ class DevialetConfigFlow(ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(
             step_id="user",
-            data_schema=vol.Schema(
+            data_schema=vol.Schema(  # type: ignore[arg-type, unused-ignore]
                 {
                     vol.Required(CONF_HOST): str,
                     vol.Optional(CONF_PORT, default=DEFAULT_PORT): cv.port,
@@ -125,7 +127,7 @@ class DevialetConfigFlow(ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(
             step_id="reconfigure",
-            data_schema=vol.Schema(
+            data_schema=vol.Schema(  # type: ignore[arg-type, unused-ignore]
                 {
                     vol.Required(
                         CONF_HOST,
@@ -232,7 +234,7 @@ class DevialetOptionsFlow(OptionsFlow):
 
         return self.async_show_form(
             step_id="init",
-            data_schema=vol.Schema(
+            data_schema=vol.Schema(  # type: ignore[arg-type, unused-ignore]
                 {
                     vol.Optional(
                         CONF_SCAN_INTERVAL,

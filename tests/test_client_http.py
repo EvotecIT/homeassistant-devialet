@@ -51,6 +51,57 @@ async def test_borrowed_status_policy_preserves_optional_volume_fallback(raise_s
         assert not session.closed
 
 
+@pytest.mark.parametrize("status", [200, 400, 409, 500])
+@pytest.mark.parametrize("group_missing", [False, True])
+async def test_no_current_source_reads_over_http(status, group_missing):
+    """Idle API errors are absent source data, including the system fallback."""
+    paths = []
+
+    async def handler(request):
+        paths.append(request.path)
+        if group_missing and "/groups/" in request.path:
+            return web.Response(status=404)
+        return web.json_response(
+            {"error": {"code": "NoCurrentSource"}}, status=status
+        )
+
+    async with (
+        local_server(handler) as port,
+        ClientSession(raise_for_status=True) as session,
+    ):
+        client = DevialetApiClient("127.0.0.1", session, port=port)
+        assert await client.async_get_source_state() is None
+        assert await client.async_get_volume() is None
+        assert paths[-1] == (
+            "/ipcontrol/v1/systems/current/sources/current/soundControl/volume"
+        )
+        assert not session.closed
+
+
+@pytest.mark.parametrize("operation", ["volume", "night_mode", "play"])
+async def test_source_absence_does_not_hide_other_failures(operation):
+    """Only current-source reads tolerate the precise idle error code."""
+    code = "InternalError" if operation == "volume" else "NoCurrentSource"
+
+    async def handler(request):
+        return web.json_response({"error": {"code": code}}, status=400)
+
+    async with (
+        local_server(handler) as port,
+        ClientSession() as session,
+    ):
+        client = DevialetApiClient("127.0.0.1", session, port=port)
+        call = {
+            "volume": client.async_get_volume,
+            "night_mode": client.async_get_night_mode,
+            "play": client.async_play,
+        }[operation]
+        with pytest.raises(DevialetResponseError) as error:
+            await call()
+        assert error.value.status == 400
+        assert error.value.code == code
+
+
 @pytest.mark.parametrize("operation", ["read", "write"])
 @pytest.mark.parametrize("status", [404, 503])
 async def test_power_management_fallback_requires_unsupported_endpoint(

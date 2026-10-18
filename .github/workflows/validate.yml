@@ -28,7 +28,7 @@ jobs:
           - python-version: "3.14"
             homeassistant: "2026.7.2"
           - python-version: "3.14"
-            homeassistant: "2026.10.1"
+            homeassistant: "2026.10.2"
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -44,7 +44,7 @@ jobs:
           if [ "${{ matrix.homeassistant }}" = "2026.7.2" ]; then
             python -m pip install -r requirements-test-minimum.txt
           else
-            python -m pip install -e .[test] "homeassistant==2026.10.1" "pytest-homeassistant-custom-component==0.13.372"
+            python -m pip install -e .[test] "homeassistant==2026.10.2" "pytest-homeassistant-custom-component==0.13.373"
           fi
 
       - name: Ruff

@@ -79,6 +79,11 @@ Open the device page to find the media player and supported settings. Use
 **Configure** to adjust polling and optional setting sensors, or **Reconfigure**
 to update the network address.
 
+When no source is active, the media player reports **Idle**. Volume and source
+details are unavailable until the speaker reports them; system controls such as
+night mode, auto power off, and Bluetooth pairing remain available. A network
+outage or an unexpected API error still marks the device unavailable.
+
 ## Documentation
 
 | I want to… | Guide |

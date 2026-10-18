@@ -173,16 +173,22 @@ class DevialetApiClient:
 
     async def async_get_source_state(self) -> DevialetSourceState | None:
         """Fetch the current source state."""
-        payload = await self._request_optional_json("GET", CURRENT_SOURCE_ENDPOINT)
+        payload = await self._request_optional_json(
+            "GET", CURRENT_SOURCE_ENDPOINT, allow_no_current_source=True
+        )
         if payload is None:
             return None
         return DevialetSourceState.from_dict(payload)
 
     async def async_get_volume(self) -> DevialetVolume | None:
         """Fetch current volume."""
-        payload = await self._request_optional_json("GET", VOLUME_ENDPOINT)
+        payload = await self._request_optional_json(
+            "GET", VOLUME_ENDPOINT, allow_no_current_source=True
+        )
         if payload is None:
-            payload = await self._request_optional_json("GET", SYSTEM_VOLUME_ENDPOINT)
+            payload = await self._request_optional_json(
+                "GET", SYSTEM_VOLUME_ENDPOINT, allow_no_current_source=True
+            )
         if payload is None:
             return None
         return DevialetVolume.from_dict(payload)
@@ -326,7 +332,7 @@ class DevialetApiClient:
                 payload=payload,
             )
         except DevialetResponseError as err:
-            if err.status != 404 and err.code != "NotFound":
+            if not _is_missing_endpoint(err):
                 raise
             await self._request_json(
                 "POST",
@@ -371,12 +377,16 @@ class DevialetApiClient:
         method: str,
         endpoint: str,
         payload: Mapping[str, Any] | None = None,
+        *,
+        allow_no_current_source: bool = False,
     ) -> dict[str, object] | None:
-        """Request JSON from an optional endpoint."""
+        """Read optional data, allowing source absence only for source reads."""
         try:
             return await self._request_json(method, endpoint, payload=payload)
         except DevialetResponseError as err:
-            if err.status == 404 or err.code == "NotFound":
+            if _is_missing_endpoint(err):
+                return None
+            if allow_no_current_source and err.code == "NoCurrentSource":
                 return None
             raise
 
@@ -406,14 +416,26 @@ class DevialetApiClient:
             ) from err
 
         if response.status >= 400:
+            # Firmware can report API errors with either HTTP success or error
+            # statuses. Preserve the code so callers can distinguish idle state
+            # from a failed request without treating every HTTP error as optional.
+            try:
+                error_data = json.loads(response_text)
+            except json.JSONDecodeError:
+                error_data = None
+            error = error_data.get("error") if isinstance(error_data, dict) else None
+            code = error.get("code") if isinstance(error, dict) else None
+            error_code = code if isinstance(code, str) else None
             if response.status == 404:
                 raise DevialetResponseError(
                     "Devialet IP Control API was not found at the configured address",
                     status=response.status,
+                    code=error_code,
                 )
             raise DevialetResponseError(
                 f"Devialet device returned HTTP {response.status}",
                 status=response.status,
+                code=error_code,
             )
 
         if not response_text.strip():
@@ -471,6 +493,14 @@ class DevialetApiClient:
             and "<app-root" in normalized
             and "<title>webui</title>" in normalized
         )
+
+
+def _is_missing_endpoint(error: DevialetResponseError) -> bool:
+    """Preserve missing-endpoint fallbacks without hiding other HTTP failures."""
+    return error.status == 404 or (
+        error.code == "NotFound"
+        and (error.status is None or error.status < 400)
+    )
 
 
 def _supports_optional_feature(

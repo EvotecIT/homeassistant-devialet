@@ -16,7 +16,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from custom_components.devialet import async_setup_entry
 from custom_components.devialet.const import CONF_PATH, DEFAULT_PATH, DOMAIN
 from tests.components.devialet.test_init import _mock_refresh_endpoints
-from tests.conftest import TEST_HOST, TEST_PORT, TEST_SERIAL
+from tests.conftest import TEST_DEVICE_ID, TEST_HOST, TEST_PORT, TEST_SERIAL
 
 
 async def _entry(hass, monkeypatch, state, *, changed):
@@ -35,7 +35,9 @@ async def _entry(hass, monkeypatch, state, *, changed):
     entry.mock_state(hass, state)
     if state is ConfigEntryState.LOADED:
         coordinator = Mock(
-            data=SimpleNamespace(device=SimpleNamespace(serial=TEST_SERIAL)),
+            data=SimpleNamespace(device=SimpleNamespace(
+                serial=TEST_SERIAL, device_id=TEST_DEVICE_ID,
+            )),
             async_config_entry_first_refresh=AsyncMock(),
         )
         monkeypatch.setattr(
@@ -160,7 +162,9 @@ async def test_rediscovery_during_setup_uses_new_host(
     def coordinator_factory(_hass, setup_entry):
         setup_hosts.append(setup_entry.data[CONF_HOST])
         return Mock(
-            data=SimpleNamespace(device=SimpleNamespace(serial=TEST_SERIAL)),
+            data=SimpleNamespace(device=SimpleNamespace(
+                serial=TEST_SERIAL, device_id=TEST_DEVICE_ID,
+            )),
             async_config_entry_first_refresh=AsyncMock(
                 side_effect=first_refresh if len(setup_hosts) == 1 else None
             ),

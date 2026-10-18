@@ -8,6 +8,8 @@ from datetime import timedelta
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryError
+from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
@@ -42,6 +44,8 @@ class DevialetCoordinator(DataUpdateCoordinator[DevialetSnapshot]):
             path=entry.data.get(CONF_PATH, DEFAULT_PATH),
             session=session,
         )
+        self.identity_matches_entry = False
+        self.registry_identity = entry.entry_id
         super().__init__(
             hass,
             _LOGGER,
@@ -58,7 +62,7 @@ class DevialetCoordinator(DataUpdateCoordinator[DevialetSnapshot]):
     async def _async_update_data(self) -> DevialetSnapshot:
         """Fetch data from the device."""
         try:
-            return await self.client.async_refresh()
+            snapshot = await self.client.async_refresh()
         except DevialetConnectionError as err:
             raise UpdateFailed(
                 translation_domain=DOMAIN,
@@ -69,3 +73,28 @@ class DevialetCoordinator(DataUpdateCoordinator[DevialetSnapshot]):
                 translation_domain=DOMAIN,
                 translation_key="refresh_failed",
             ) from err
+        # An immediate action refresh can finish after HA shuts this owner down.
+        # It must not change repair state now owned by a replacement or removed entry.
+        if self._shutdown_requested:
+            return snapshot
+        issue_id = f"device_identity_{self.config_entry.entry_id}"
+        expected = self.config_entry.unique_id
+        self.identity_matches_entry = expected is None or expected in (
+            snapshot.device.serial, snapshot.device.device_id,
+        )
+        if not self.identity_matches_entry:
+            ir.async_create_issue(
+                self.hass, DOMAIN, issue_id,
+                is_fixable=False, severity=ir.IssueSeverity.ERROR,
+                translation_key="wrong_device",
+            )
+            raise ConfigEntryError(
+                translation_domain=DOMAIN, translation_key="wrong_device",
+            )
+        ir.async_delete_issue(self.hass, DOMAIN, issue_id)
+        return snapshot
+
+    async def async_shutdown(self) -> None:
+        """Reject retained actions when HA releases this coordinator."""
+        self.identity_matches_entry = False
+        await super().async_shutdown()

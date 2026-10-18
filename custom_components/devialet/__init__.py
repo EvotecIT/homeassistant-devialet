@@ -5,7 +5,9 @@ from __future__ import annotations
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers import issue_registry as ir
 
+from .const import DOMAIN
 from .coordinator import DevialetConfigEntry, DevialetCoordinator
 
 PLATFORMS = [
@@ -56,38 +58,54 @@ async def async_reload_entry(hass: HomeAssistant, entry: DevialetConfigEntry) ->
     await hass.config_entries.async_reload(entry.entry_id)
 
 
+async def async_remove_entry(hass: HomeAssistant, entry: DevialetConfigEntry) -> None:
+    """Remove the identity repair when its entry is deleted."""
+    ir.async_delete_issue(hass, DOMAIN, f"device_identity_{entry.entry_id}")
+
+
 async def _async_migrate_media_player_entity(
     hass: HomeAssistant,
     entry: DevialetConfigEntry,
     coordinator: DevialetCoordinator,
 ) -> None:
-    """Remove the old custom media-player duplicate if it exists."""
+    """Restore the registry identity and migrate the old media-player ID."""
     entity_registry = er.async_get(hass)
     serial = coordinator.data.device.serial
-    if serial is None:
+    media_entries = {
+        row.unique_id: row.entity_id
+        for row in er.async_entries_for_config_entry(entity_registry, entry.entry_id)
+        if row.domain == Platform.MEDIA_PLAYER
+    }
+    existing_identity = next(
+        (identity for identity in (serial, entry.entry_id)
+         if identity in media_entries),
+        None,
+    )
+    if existing_identity is None:
+        existing_identity = next(
+            (identity for identity in media_entries
+             if not identity.endswith("_media_player")),
+            None,
+        )
+    legacy_unique_id = f"{serial}_media_player"
+    if existing_identity is not None:
+        coordinator.registry_identity = existing_identity
+    elif serial is not None and (
+        legacy_unique_id in media_entries
+        or entry.unique_id != coordinator.data.device.device_id
+    ):
+        coordinator.registry_identity = serial
+    # New UUID-based entries keep their entry ID if a serial appears later.
+    # Existing serial-based rows retain their namespace even without a serial.
+    if serial is None or coordinator.registry_identity != serial:
         return
 
-    legacy_unique_id = f"{serial}_media_player"
     current_unique_id = serial
-
-    current_exists = False
-    legacy_entity_id: str | None = None
-
-    for registry_entry in er.async_entries_for_config_entry(
-        entity_registry,
-        entry.entry_id,
-    ):
-        if registry_entry.domain != Platform.MEDIA_PLAYER:
-            continue
-        if registry_entry.unique_id == current_unique_id:
-            current_exists = True
-        if registry_entry.unique_id == legacy_unique_id:
-            legacy_entity_id = registry_entry.entity_id
-
+    legacy_entity_id = media_entries.get(legacy_unique_id)
     if legacy_entity_id is None:
         return
 
-    if current_exists:
+    if current_unique_id in media_entries:
         entity_registry.async_remove(legacy_entity_id)
         return
 

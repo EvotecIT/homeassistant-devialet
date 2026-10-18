@@ -72,6 +72,14 @@ SETTINGS = "/systems/current/settings"
             "/groups/current/sources/00000000-0000-4000-8000-000000000105/playback/play",
             {},
         ),
+        (
+            "media_player",
+            "select_source",
+            "dione",
+            {"source": "00000000-0000-4000-8000-000000000105"},
+            "/groups/current/sources/00000000-0000-4000-8000-000000000105/playback/play",
+            {},
+        ),
         ("media_player", "turn_off", "dione", {}, "/systems/current/powerOff", {}),
         (
             "switch",

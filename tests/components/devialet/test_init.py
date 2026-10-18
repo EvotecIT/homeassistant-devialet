@@ -38,6 +38,8 @@ def _mock_refresh_endpoints(
     base_url=TEST_BASE_URL,
     device_payload=DEVICE_PAYLOAD,
     system_payload=SYSTEM_PAYLOAD,
+    source_state_payload=CURRENT_SOURCE_PAYLOAD,
+    optional_status=200,
 ) -> None:
     """Register the API endpoints used by the coordinator."""
     mocked.get(f"{base_url}/devices/current", json=device_payload)
@@ -48,7 +50,7 @@ def _mock_refresh_endpoints(
     )
     mocked.get(
         f"{base_url}/groups/current/sources/current",
-        json=CURRENT_SOURCE_PAYLOAD,
+        json=source_state_payload,
     )
     mocked.get(
         f"{base_url}/groups/current/sources/current/soundControl/volume",
@@ -57,18 +59,22 @@ def _mock_refresh_endpoints(
     mocked.get(
         f"{base_url}/systems/current/settings/audio/nightMode",
         json=NIGHT_MODE_PAYLOAD,
+        status=optional_status,
     )
     mocked.get(
         f"{base_url}/systems/current/settings/audio/renderingMode",
         json=RENDERING_MODE_PAYLOAD,
+        status=optional_status,
     )
     mocked.get(
         f"{base_url}/systems/current/settings/ledMode",
         json=LED_MODE_PAYLOAD,
+        status=optional_status,
     )
     mocked.get(
         f"{base_url}/systems/current/settings/powerManagement",
         json=POWER_MANAGEMENT_PAYLOAD,
+        status=optional_status,
     )
 
 

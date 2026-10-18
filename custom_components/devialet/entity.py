@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from collections.abc import Awaitable
+from collections.abc import Coroutine
+from typing import Any
 
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.device_registry import DeviceInfo
@@ -21,7 +22,7 @@ class DevialetCoordinatorEntity(CoordinatorEntity[DevialetCoordinator]):
     def __init__(self, coordinator: DevialetCoordinator, unique_suffix: str) -> None:
         """Initialize the entity."""
         super().__init__(coordinator)
-        serial = coordinator.data.device.serial or coordinator.config_entry.entry_id
+        serial = coordinator.registry_identity
         self._attr_unique_id = f"{serial}_{unique_suffix}"
 
     @property
@@ -36,7 +37,7 @@ class DevialetCoordinatorEntity(CoordinatorEntity[DevialetCoordinator]):
         system = self.coordinator.data.system
         return DeviceInfo(
             identifiers={
-                (DOMAIN, device.serial or self.coordinator.config_entry.entry_id)
+                (DOMAIN, self.coordinator.registry_identity)
             },
             manufacturer=MANUFACTURER,
             model=device.model or device.model_family,
@@ -49,8 +50,13 @@ class DevialetCoordinatorEntity(CoordinatorEntity[DevialetCoordinator]):
             configuration_url=self.coordinator.client.configuration_url,
         )
 
-    async def _async_perform(self, action: Awaitable[object]) -> None:
+    async def _async_perform(self, action: Coroutine[Any, Any, object]) -> None:
         """Perform a device action and refresh the coordinator afterwards."""
+        if not self.coordinator.identity_matches_entry:
+            action.close()
+            raise HomeAssistantError(
+                translation_domain=DOMAIN, translation_key="wrong_device",
+            )
         try:
             await action
         except DevialetConnectionError as err:

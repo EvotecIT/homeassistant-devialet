@@ -5,6 +5,7 @@ from types import SimpleNamespace
 
 import pytest
 from homeassistant.components.diagnostics import REDACTED
+from homeassistant.setup import async_setup_component
 
 from custom_components.devialet.diagnostics import async_get_config_entry_diagnostics
 from custom_components.devialet.models import (
@@ -14,7 +15,31 @@ from custom_components.devialet.models import (
     DevialetSourceState,
     DevialetSystemInfo,
 )
-from tests.conftest import DEVICE_PAYLOAD, SYSTEM_PAYLOAD
+from tests.components.devialet.test_init import _mock_refresh_endpoints
+from tests.conftest import DEVICE_PAYLOAD, SYSTEM_PAYLOAD, TEST_HOST, TEST_SERIAL
+
+
+async def test_downloaded_diagnostics_are_serializable_and_redacted(
+    hass, hass_client, mock_config_entry, aioclient_mock
+):
+    """Exercise HA's actual download endpoint, including JSON conversion."""
+    mock_config_entry.add_to_hass(hass)
+    _mock_refresh_endpoints(aioclient_mock)
+    assert await hass.config_entries.async_setup(mock_config_entry.entry_id)
+    await hass.async_block_till_done()
+    assert await async_setup_component(hass, "diagnostics", {})
+    client = await hass_client()
+    response = await client.get(
+        f"/api/diagnostics/config_entry/{mock_config_entry.entry_id}"
+    )
+    assert response.status == 200
+    text = await response.text()
+    assert TEST_HOST not in text and TEST_SERIAL not in text
+    downloaded = await response.json()
+    assert downloaded["data"]["snapshot"]["device"]["serial"] == REDACTED
+    assert downloaded["data"]["snapshot"]["device"]["model"] == "Dione"
+    assert mock_config_entry.runtime_data.data.device.serial == TEST_SERIAL
+    assert await hass.config_entries.async_unload(mock_config_entry.entry_id)
 
 
 @pytest.mark.parametrize("with_media", [False, True])

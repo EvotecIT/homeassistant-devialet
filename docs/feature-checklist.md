@@ -19,11 +19,5 @@ The [Dione protocol notes](devialet-dione-investigation.md) retain observed
 endpoint and firmware evidence. An advertised feature name alone does not
 prove a writable API.
 
-## Home Assistant usability
-
-- [ ] Add clearer guidance for Bluetooth pairing's discoverability window.
-- [ ] Add repair guidance for unsupported or changed device endpoints when a
-  normal setup error does not explain recovery.
-
 Only add entities for verified capabilities. Factory reset and other destructive
 operations must not become ordinary dashboard buttons.

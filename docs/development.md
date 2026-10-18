@@ -18,11 +18,14 @@ inside it are covered too. Tests also verify that downloads do not mutate the
 config entry or coordinator snapshot.
 
 For measured integration and bundled-client coverage, run
-`pytest --cov=custom_components.devialet --cov-report=term-missing`.
+`pytest --cov=custom_components.devialet --cov-branch --cov-report=term-missing`.
 Strict mypy 2.4.0 checking covers all 21 production modules, including the bundled
 client. Config-flow statement and branch coverage are both 100%. Above 95%
-integration-module coverage and
-artifact/device qualification remain open in the [rule ledger](quality.md).
+integration-module coverage is checked independently for each production Python
+file, including the bundled client, in both CI lanes. The flow has a separate
+100% gate. The existing pytest-cov/coverage tools provide these checks; no new
+checker is required. Artifact/device qualification remains open in the
+[rule ledger](quality.md).
 
 Network tests verify IPv4, DNS names, and IPv6 request URLs, including the device
 registry's configuration link. The reusable client owns URL formatting so the
@@ -32,9 +35,9 @@ reconfiguration forms reject out-of-range ports before network validation.
 Writable entity platforms use `PARALLEL_UPDATES = 1`; sensor and binary-sensor
 platforms use zero because the coordinator owns their reads. A multi-entity HA
 switch action verifies one active write at a time within that platform and entry.
-This does not serialize different platforms or coordinator polling. HA 2025.1
-bypasses its platform action semaphore for a single-entity service call; current
-HA applies it. The integration does not provide a separate global request lock.
+This does not serialize different platforms or coordinator polling. Both
+supported HA versions apply the platform semaphore. The integration does not
+provide a separate global request lock.
 
 Action tests exercise real HA services through the HTTP request boundary for
 playback, volume, source selection, LED/rendering modes, night mode, power
@@ -52,8 +55,7 @@ physical-speaker behavior.
 Lifecycle tests use public HA entry operations to verify offline-startup retry,
 failed unload retaining its coordinator and borrowed session, retry after failed
 platform forwarding, and repeated reloads preserving registry identities while
-detaching old coordinators. HA 2025.1 retains the loaded state after a failed
-unload; current HA marks it failed. Both retain the integration owner.
+detaching old coordinators. Failed unloading retains the integration owner.
 
 Entity names use HA translation keys with English and Polish labels. Host tests
 verify all 17 child entities, English fallback for an untranslated language,
@@ -75,16 +77,16 @@ provides setup, entities, and automations. See the
 [runnable client example](../examples/python_client.py) instead of copying
 protocol calls into Home Assistant configuration.
 
-CI tests the declared HA 2026.7.2 minimum and the fixed HA 2026.9.4 comparison
+CI tests the declared HA 2026.7.2 minimum and the fixed HA 2026.10.1 comparison
 target on Python 3.14. Newer releases need separate qualification.
 Install `requirements-test-minimum.txt` to reproduce the minimum lane in a separate
 virtual environment. Home Assistant supplies its compatible patched DNS and
-zeroconf dependencies. Strict typing runs against the comparison target.
+zeroconf dependencies. Strict typing runs in both lanes.
 
-Home Assistant 2026.9 and later alias the voluptuous import to Probatio at
-runtime. The minimum host still uses voluptuous. Static checking cannot follow
+Home Assistant 2026.9 and later [alias the voluptuous import to Probatio](https://developers.home-assistant.io/blog/2026/09/30/probatio-validation-engine/)
+at runtime. The minimum host still uses voluptuous. Static checking cannot follow
 HA's runtime alias, so the three form-schema arguments carry narrowly scoped
 `arg-type` suppressions; `unused-ignore` permits the same source to be checked
-against the minimum host. These exceptions preserve the existing validators
-and do not skip a module or suppress unrelated errors. Flow tests exercise
-schema validation through Home Assistant on both hosts.
+against the minimum host. These exceptions cover the host alias, preserve the
+existing validators, and do not skip a module or suppress unrelated errors.
+Public flow tests exercise schema validation on both hosts.

@@ -52,9 +52,7 @@ class DevialetMediaPlayer(DevialetCoordinatorEntity, MediaPlayerEntity):
     def __init__(self, coordinator: DevialetCoordinator) -> None:
         """Initialize the media player."""
         super().__init__(coordinator, "media_player")
-        self._attr_unique_id = (
-            coordinator.data.device.serial or coordinator.config_entry.entry_id
-        )
+        self._attr_unique_id = coordinator.registry_identity
 
     @property
     def state(self) -> MediaPlayerState | None:

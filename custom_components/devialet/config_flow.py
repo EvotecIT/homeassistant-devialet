@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Any
 # cannot follow that alias; only the three schema arguments need suppressions.
 import voluptuous as vol
 from homeassistant.config_entries import (
+    SOURCE_ZEROCONF,
     ConfigEntry,
     ConfigFlow,
     ConfigFlowResult,
@@ -104,6 +105,10 @@ class DevialetConfigFlow(ConfigFlow, domain=DOMAIN):
                 self._errors["base"] = "cannot_connect"
             else:
                 serial = snapshot.device.serial or snapshot.device.device_id
+                if entry.unique_id is not None and entry.unique_id in (
+                    snapshot.device.serial, snapshot.device.device_id,
+                ):
+                    serial = entry.unique_id
                 if serial is None:
                     self._errors["base"] = "unsupported"
                 else:
@@ -201,13 +206,26 @@ class DevialetConfigFlow(ConfigFlow, domain=DOMAIN):
             self._errors["base"] = "cannot_connect"
             return None
 
-        serial = snapshot.device.serial or snapshot.device.device_id
+        serial = next(
+            (
+                entry.unique_id for entry in self._async_current_entries()
+                if entry.unique_id is not None and entry.unique_id in (
+                    snapshot.device.serial, snapshot.device.device_id,
+                )
+            ),
+            snapshot.device.serial or snapshot.device.device_id,
+        )
         if serial is None:
             self._errors["base"] = "unsupported"
             return None
 
         await self.async_set_unique_id(serial)
-        self._abort_if_unique_id_configured()
+        self._abort_if_unique_id_configured(
+            updates={
+                CONF_HOST: self._host, CONF_PORT: self._port, CONF_PATH: self._path,
+            } if self.source == SOURCE_ZEROCONF else None,
+            reload_on_update=False,
+        )
 
         title = (
             snapshot.system.system_name or snapshot.device.device_name or self._title

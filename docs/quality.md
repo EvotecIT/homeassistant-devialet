@@ -5,7 +5,7 @@ checked on 2026-10-05. It is an implementation checklist, not an official rating
 The current index contains 54 rules. Every row stays open until the complete
 applicable contract has evidence; a source pointer alone is not a pass.
 
-Source evidence is refreshed on 2026-10-13. The maintained minimum is HA
+Source evidence is refreshed on 2026-10-18. The maintained minimum is HA
 2026.7.2; the comparison target is HA 2026.10.1. The intermediate HA 2026.9.4
 measurement remains available as compatibility evidence. Source checks, built
 artifacts, published releases and installed devices are separate proof layers.
@@ -52,7 +52,7 @@ exemption needs the rule's permitted reason and product-specific evidence.
 | log-when-unavailable | Implemented | The public HA outage/recovery test exercises three failed refreshes: one coordinator error is logged, repeated failures do not repeat it, and a successful refresh logs one INFO recovery message while restoring the media-player state. HA owns this transition logging; no duplicate integration logger was added. Physical-device timing remains separate evidence. |
 | parallel-updates | Partial | Writable platforms declare `PARALLEL_UPDATES = 1`; coordinator-only sensors declare zero. A real HA multi-entity switch action proves serialization. This is per platform/entry, not a global client lock; see the minimum-version limitation in the development guide. |
 | reauthentication-flow | Exempt | Setup/reconfigure accept host and port, and the bundled IP Control client sends local HTTP requests without credentials, tokens, or an authentication exchange. This matches the [no-authentication exception](https://developers.home-assistant.io/docs/core/integration-quality-scale/rules/reauthentication-flow/#exceptions), checked 2026-10-07. Address changes use Reconfigure. |
-| test-coverage | Source verified | 164 tests pass on HA 2026.7.2 and 2026.10.1. The integration and bundled client cover 1,039/1,047 statements (99.24%) and 174/180 branches (96.67%); combined coverage is 98.86%, with every production module above 95%. Both CI lanes enforce above95% per production module and100% flow coverage using the existing coverage tool; strict typing now runs in both lanes. Full flow coverage is retained. New proof covers legacy registry migration, optional settings disappearing/recovering, media-state fallback and real local HTTP errors, disconnects, deadlines and cancellation. No exclusions were added. Published-artifact and physical-device qualification remain separate. |
+| test-coverage | Source verified | 181 tests pass on HA 2026.7.2 and 2026.10.1. The integration and bundled client cover 1,050/1,058 statements (99.24%) and 176/182 branches (96.70%); combined coverage is 98.87%, with every production module above 95%. Both CI lanes enforce above95% per production module and100% flow coverage using the existing coverage tool; strict typing now runs in both lanes. Full flow coverage is retained. New proof covers legacy registry migration, optional settings disappearing/recovering, media-state fallback and real local HTTP errors, disconnects, deadlines and cancellation. No exclusions were added. Published-artifact and physical-device qualification remain separate. |
 
 ## Gold
 
@@ -90,7 +90,7 @@ exemption needs the rule's permitted reason and product-specific evidence.
 
 ## Qualification beyond the rule ledger
 
-- [x] 164 tests pass on the maintained HA 2026.7.2 minimum and HA 2026.10.1 comparison with the same source; all 21 production files pass strict typing in both environments.
+- [x] 181 tests pass on the maintained HA 2026.7.2 minimum and HA 2026.10.1 comparison with the same source; all 21 production files pass strict typing in both environments.
 - [x] Build and install the committed source wheel; all162 public HA tests pass against its installed integration on HA2026.7.2, with no source checkout in the test directory. The standalone consumer also imports and type-checks without Home Assistant.
 - [ ] Install the published artifact and upgrade from the previous stable release.
 - [ ] Verify real model/firmware behaviour, resource use, reconnection, and supported actions.

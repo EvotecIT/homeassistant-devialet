@@ -51,6 +51,17 @@ Neither app is required to use this project.
 
 ## Installation
 
+This custom integration uses the same `devialet` domain as Home Assistant's
+[built-in Devialet integration](https://www.home-assistant.io/integrations/devialet/).
+While `custom_components/devialet` is installed, Home Assistant loads this
+implementation for Devialet entries. The two implementations cannot run side by
+side on the same Home Assistant instance.
+
+Back up Home Assistant before switching implementations. Existing entries and
+entity IDs are not a qualified migration path between the built-in integration
+and this custom integration. See [removal and switching](docs/configuration.md#remove-the-integration)
+before changing which implementation is installed.
+
 ### HACS
 
 [![Open this repository in HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=EvotecIT&repository=homeassistant-devialet&category=integration)

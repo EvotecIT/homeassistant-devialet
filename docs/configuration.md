@@ -113,6 +113,15 @@ manual installation, remove only `custom_components/devialet` from the Home
 Assistant configuration directory and restart. Other custom integrations can
 share the parent `custom_components` directory.
 
+Home Assistant also includes a built-in integration under the same `devialet`
+domain. Removing this custom code and restarting makes the built-in
+implementation available again. Remove this integration's entries before
+removing its code; do not leave an entry expecting a different implementation
+to adopt its configuration. After restarting, add the speaker through the built-in
+integration using its supported devices and options. Entity IDs and automation
+references may change. Back up the configuration before switching;
+migration between these implementations has not been qualified.
+
 The integration does not create its own persistent cache files. Home Assistant
 manages configuration entries, entity history, and backups separately; removing
 the integration is not a request to purge recorder history or existing backups.

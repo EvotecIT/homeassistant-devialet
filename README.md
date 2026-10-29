@@ -9,13 +9,14 @@
 
 Control your Devialet speakers and the Dione soundbar from Home Assistant over
 your home network, with no cloud account. Change volume and input, switch night
-mode for late films, and tune the settings from the Devialet app.
+mode for late films, and tune Dione's settings from Home Assistant.
 
 ## What you get
 
-- **Everyday control:** power, volume, mute, input, and playback.
+- **Everyday control:** volume, mute, input, playback, and power off.
 - **Dione settings:** night mode, sound rendering mode, LEDs, and auto power-off.
-- **Bluetooth pairing** from Home Assistant, plus optional diagnostics.
+- **Make the speaker discoverable over Bluetooth** from Home Assistant, plus
+  optional diagnostics.
 - **Found automatically** on your network.
 
 **Devices:** tested on the Dione. Other Devialet speakers work when they offer

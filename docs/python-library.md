@@ -11,11 +11,18 @@ It is intended for:
 
 ## Installation
 
-From this repository:
+Use Python 3.13 or newer. Download **Source code (zip)** from the
+[latest release](https://github.com/EvotecIT/homeassistant-devialet/releases/latest)
+and install the downloaded archive:
 
 ```bash
-python -m pip install -e .
+python -m pip install path/to/downloaded-release.zip
 ```
+
+The standalone client installs aiohttp and does not require Home Assistant.
+For development from a source checkout, use `python -m pip install -e .`.
+The caller owns the `ClientSession` and closes it after all client operations
+finish; the client does not close a borrowed session.
 
 ## Quick Start
 

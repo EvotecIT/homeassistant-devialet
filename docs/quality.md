@@ -6,7 +6,7 @@ The current index contains 54 rules. Every row stays open until the complete
 applicable contract has evidence; a source pointer alone is not a pass.
 
 Source evidence is refreshed on 2026-10-18. The maintained minimum is HA
-2026.7.2; the current stable comparison target is HA 2026.10.2. The earlier
+2026.7.2; the pinned comparison target is HA 2026.10.2. The earlier
 HA 2026.9.4 and 2026.10.1 measurements remain available as compatibility
 evidence. Source checks, built artifacts, published releases and installed devices are separate proof layers.
 
@@ -104,7 +104,7 @@ exemption needs the rule's permitted reason and product-specific evidence.
 
 ## Qualification beyond the rule ledger
 
-- [x] 181 tests pass on the maintained HA 2026.7.2 minimum and HA 2026.10.2 current stable comparison with the same source; all 21 production files pass strict typing in both environments.
+- [x] 181 tests pass on the maintained HA 2026.7.2 minimum and HA 2026.10.2 comparison with the same source; all 21 production files pass strict typing in both environments.
 - [x] Build and install the committed source wheel; all 181 public HA tests pass against its installed integration on HA 2026.7.2, with no source checkout in the test directory. The standalone consumer also imports and type-checks without Home Assistant.
 - [x] Install public v0.2.12 as a standalone client on Python 3.13/3.14 without Home Assistant, and check its valid and invalid consumer type contracts.
 - [x] Install public v0.2.12 from its source archive and upgrade from public v0.2.11 on isolated HA 2026.10.1, preserving all 18 entity identities and selected user preferences.

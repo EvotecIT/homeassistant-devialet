@@ -2,9 +2,10 @@
 
 ![Devialet for Home Assistant](assets/homeassistant-devialet-social.png)
 
-[![HACS Custom](https://img.shields.io/badge/HACS-Custom-41BDF5.svg?style=for-the-badge)](https://hacs.xyz/)
+[![Marketplace Catalog](https://img.shields.io/badge/Marketplace-Catalog-41BDF5.svg?style=for-the-badge)](https://my.home-assistant.io/redirect/marketplace_repository/?owner=EvotecIT&repository=homeassistant-devialet&category=integration)
 [![CI](https://img.shields.io/github/actions/workflow/status/EvotecIT/homeassistant-devialet/validate.yml?branch=main&style=for-the-badge&label=CI)](https://github.com/EvotecIT/homeassistant-devialet/actions/workflows/validate.yml)
 [![License](https://img.shields.io/github/license/EvotecIT/homeassistant-devialet?style=for-the-badge)](LICENSE)
+[![GitHub stars](https://img.shields.io/github/stars/EvotecIT/homeassistant-devialet?style=for-the-badge)](https://github.com/EvotecIT/homeassistant-devialet/stargazers)
 
 Requires Home Assistant 2026.7.2 or later. Upgrade the Home Assistant host before
 installing this integration; the host owns its zeroconf and DNS dependencies.
@@ -39,6 +40,7 @@ Other integrations and dashboards we maintain:
 - [KEF](https://github.com/EvotecIT/homeassistant-kef) — Local control for modern and legacy speaker families.
 - [Siegenia](https://github.com/EvotecIT/homeassistant-siegenia) — Local control for supported window controllers.
 - [EasyControlX](https://github.com/EvotecIT/homeassistant-easycontrolx) — Connect supported Windows and macOS hosts.
+- [Waste Pickup Planner](https://github.com/EvotecIT/lovelace-waste-pickup-planner) — Waste collection dates, bin overviews, cards, and badges.
 
 For a native app connected to the same Home Assistant setup:
 
@@ -62,7 +64,25 @@ entity IDs are not a qualified migration path between the built-in integration
 and this custom integration. See [removal and switching](docs/configuration.md#remove-the-integration)
 before changing which implementation is installed.
 
-### HACS
+### Home Assistant 2026.11 and newer
+
+[![Open this repository in the Marketplace](https://my.home-assistant.io/badges/marketplace_repository.svg)](https://my.home-assistant.io/redirect/marketplace_repository/?owner=EvotecIT&repository=homeassistant-devialet&category=integration)
+
+1. Open **Settings → Marketplace** and search for **Devialet**.
+2. Open the project and select **Install**.
+3. Continue into the **Devialet** setup flow.
+
+If the project is missing from your catalog, choose **Add from link** and enter
+`https://github.com/EvotecIT/homeassistant-devialet`. Adding a custom repository
+requires a GitHub connection.
+
+A first installation can open setup without a restart. For updates, follow the
+restart prompt shown by Home Assistant.
+
+Existing HACS installations migrate automatically when Home Assistant upgrades
+to 2026.11. The repository metadata remains in `hacs.json`.
+
+### Home Assistant 2026.10 and older: HACS
 
 [![Open this repository in HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=EvotecIT&repository=homeassistant-devialet&category=integration)
 

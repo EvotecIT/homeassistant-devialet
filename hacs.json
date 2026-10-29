@@ -2,5 +2,7 @@
   "name": "Devialet",
   "content_in_root": false,
   "render_readme": true,
-  "homeassistant": "2026.7.2"
+  "homeassistant": "2026.7.2",
+  "zip_release": true,
+  "filename": "devialet.zip"
 }

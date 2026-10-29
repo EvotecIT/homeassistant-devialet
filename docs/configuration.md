@@ -108,17 +108,18 @@ the speaker. This integration uses the local API without a vendor account login,
 so there is no cloud authorization to revoke.
 
 To remove the downloaded integration code as well, remove all Devialet entries
-first, then remove the repository through HACS and restart Home Assistant. For a
-manual installation, remove only `custom_components/devialet` from the Home
-Assistant configuration directory and restart. Other custom integrations can
+first, then uninstall the project through **Settings → Marketplace** on HA
+2026.11 or newer, or through HACS on older HA versions. Restart Home Assistant
+when prompted. For a manual installation, remove only `custom_components/devialet`
+from the Home Assistant configuration directory and restart. Other custom integrations can
 share the parent `custom_components` directory.
 
 Home Assistant also includes a built-in integration under the same `devialet`
 domain. To switch from the built-in integration to this custom integration,
 back up Home Assistant and remove the existing built-in Devialet entries before
-installing the custom code. Install through HACS or manually, restart Home
-Assistant, then add each speaker again. Treat this as a fresh setup: migration
-between the implementations has not been qualified, and entity IDs and
+installing the custom code. Follow the [installation instructions](../README.md#installation),
+restart Home Assistant, then add each speaker again. Treat this as a fresh setup:
+migration between the implementations has not been qualified, and entity IDs and
 automation references may change.
 
 Removing this custom code and restarting makes the built-in

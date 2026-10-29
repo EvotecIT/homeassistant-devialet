@@ -114,7 +114,14 @@ Assistant configuration directory and restart. Other custom integrations can
 share the parent `custom_components` directory.
 
 Home Assistant also includes a built-in integration under the same `devialet`
-domain. Removing this custom code and restarting makes the built-in
+domain. To switch from the built-in integration to this custom integration,
+back up Home Assistant and remove the existing built-in Devialet entries before
+installing the custom code. Install through HACS or manually, restart Home
+Assistant, then add each speaker again. Treat this as a fresh setup: migration
+between the implementations has not been qualified, and entity IDs and
+automation references may change.
+
+Removing this custom code and restarting makes the built-in
 implementation available again. Remove this integration's entries before
 removing its code; do not leave an entry expecting a different implementation
 to adopt its configuration. After restarting, add the speaker through the built-in
